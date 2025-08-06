@@ -1,0 +1,355 @@
+/**
+Theme Name: Site FAFAR Astra Child Theme
+Author: Brainstorm Force
+Author URI: http://wpastra.com/about/
+Description: Astra is the fastest, fully customizable & beautiful theme suitable for blogs, personal portfolios and business websites. It is very lightweight (less than 50KB on frontend) and offers unparalleled speed. Built with SEO in mind, Astra comes with schema.org code integrated so search engines will love your site. Astra offers plenty of sidebar options and widget areas giving you a full control for customizations. Furthermore, we have included special features and templates so feel free to choose any of your favorite page builder plugin to create pages flexibly. Some of the other features: # WooCommerce Ready # Responsive # Compatible with major plugins # Translation Ready # Extendible with premium addons # Regularly updated # Designed, Developed, Maintained & Supported by Brainstorm Force. Looking for a perfect base theme? Look no further. Astra is fast, fully customizable and beautiful theme!
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: site-fafar-astra-child-theme
+Template: astra
+*/
+
+/*
+* MODIFICANDO CLASSES DO ASTRA THEME
+* START
+*/
+.ast-main-header-wrap .main-header-bar-wrap {
+  position: -webkit-sticky !important; /* for browser compatibility */
+  position: sticky !important;
+  top: 0 !important;
+}
+/*
+* END
+*/
+
+p {
+  text-align: justify !important;
+}
+
+.fafar-side-menu-item {
+  font-size: 0.9rem;
+}
+
+.fafar-side-menu-sub-item {
+  background-color: #eee !important;
+  justify-content: left !important;
+}
+
+.fafar-side-menu-item:hover {
+  background-color: #f2b600 !important;
+  color: #ffffff !important;
+}
+
+.list-group-item > .ast-arrow-svg {
+  width: 0.6em;
+  height: 0.6em;
+  font-weight: normal;
+  fill: currentColor;
+}
+
+.container-title-sidemenu {
+}
+
+.title-sidemenu {
+}
+
+.quadmenu-navbar-nav li {
+  width: 100% !important;
+}
+
+.quadmenu-text.hover.t_1000 {
+}
+
+/**
+ *  Banner
+ *  START
+ */
+
+#banner-container {
+  margin-top: 2rem;
+}
+
+.page-banner-container {
+  height: 32vh !important;
+
+  background-repeat: repeat;
+  background-size: cover;
+  background-position: center center;
+}
+
+.page-banner-body {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+h2.page-banner-title {
+  color: white;
+}
+
+h3.page-banner-subtitle {
+  color: yellow;
+}
+
+.banner-image-custom-transition {
+  -webkit-animation: fadein 2s; /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 2s; /* Firefox < 16 */
+  -ms-animation: fadein 2s; /* Internet Explorer */
+  -o-animation: fadein 2s; /* Opera < 12.1 */
+  animation: fadein 2s;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+  END
+*/
+
+/*
+  Contact Form 7
+  START
+*/
+
+form.wpcf7-form label {
+  width: 100%;
+}
+
+/*
+  END
+*/
+
+/*
+  Language flags of GTranslate Plugin
+  START
+*/
+
+.gt_switcher_wrapper {
+  margin-top: 2rem;
+}
+
+@media (max-width: 921px) {
+  .gt_switcher_wrapper {
+    margin-top: 6rem;
+  }
+}
+
+/*
+  END
+*/
+
+/*
+  Take out left spacing from footer list itens
+  START
+*/
+
+#menu-links.menu {
+  padding-left: 0px;
+}
+
+#menu-graduacoes {
+  padding-left: 0px;
+}
+
+#menu-pos-graduacoes {
+  padding-left: 0px;
+}
+
+/*
+  END
+*/
+
+/*
+  Little generic transition
+  START
+  Building.......
+*/
+
+@keyframes slideAndHide {
+  0% {
+    opacity: 1;
+  }
+
+  99% {
+    opacity: 0.01;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.animation-to-hide-element {
+  animation-name: slideAndHide;
+  animation-duration: 1s;
+  animation-timing-function: ease;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: none;
+
+  display: none;
+}
+
+.transition-to-hide {
+  opacity: 0;
+  transition: all 1s;
+}
+
+.transition-to-hide.transition-to-visible {
+  opacity: 1;
+}
+/*
+  END
+*/
+
+/*
+ * Retira as bordas laterais 
+ * das tabelas com class .table
+ */
+.table {
+  border-left: 0px !important;
+}
+
+/*
+ * Estilos para os cards da área de destaque da página inicial
+ */
+.highlight-container {
+  margin: 2rem 0;
+}
+
+.highlight-card {
+  width: 160px !important;
+  height: 90px !important;
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+  margin: 0.5rem;
+  padding: 0rem !important;
+  transition: 0.25s ease-out;
+}
+
+.highlight-card a {
+}
+
+.highlight-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.highlight-card:hover {
+  cursor: pointer;
+  border-color: #f2b600;
+  opacity: 0.75;
+}
+
+/*
+ * Altera o padding do container de cada item da lista de posts
+ */
+.ast-separate-container .ast-blog-layout-5-grid .post-content {
+  padding: 0.8rem 1rem 0rem 1rem;
+}
+
+/*
+ * Altera o padding do container do conteúdo das páginas e posts
+ */
+.ast-separate-container .ast-article-single:not(.ast-related-post),
+.woocommerce.ast-separate-container .ast-woocommerce-container,
+.ast-separate-container .error-404,
+.ast-separate-container .no-results,
+.single.ast-separate-container .ast-author-meta,
+.ast-separate-container .related-posts-title-wrapper,
+.ast-separate-container .comments-count-wrapper,
+.ast-box-layout.ast-plain-container .site-content,
+.ast-padded-layout.ast-plain-container .site-content,
+.ast-separate-container .ast-archive-description,
+.ast-separate-container .comments-area .comment-respond,
+.ast-separate-container .comments-area .ast-comment-list li,
+.ast-separate-container .comments-area .comments-title {
+  padding: 1rem;
+}
+
+/*
+ * Redefine o padding na área em cima do footer
+ * É utilizado para área de Serviços
+ */
+.site-above-footer-wrap[data-section="section-above-footer-builder"] {
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+}
+
+/*
+ * Remover padding do primeiro nível do footer
+ */
+.site-primary-footer-wrap[data-section="section-primary-footer-builder"] {
+  padding: 1.5rem 1rem;
+}
+
+/*
+ * Remover margin das figuras do primeiro nível do footer
+ */
+.site-primary-footer-wrap[data-section="section-primary-footer-builder"]
+  figure.wp-block-image {
+  margin: 0;
+}
+
+/*
+ * Banner e o conteúdo desalinhavam, em algumas páginas
+ * Com isso setado, a parte de Personalizar que modifica a largura do container não funciona
+ */
+.ast-container {
+  max-width: 1200px;
+}
+
+/*
+ * O padrão seria 60px
+ * Mudado porque o margin-top do banner é 2rem
+ */
+#primary,
+#secondary {
+  margin-top: 2rem !important;
+}
