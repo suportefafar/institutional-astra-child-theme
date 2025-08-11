@@ -37,7 +37,12 @@ function get_custom_banner() {
             $slider = $wpdb->get_row( "SELECT * FROM wp_revslider_sliders WHERE alias = '$author_nicename'" );
 
             // Banner Content
-            $title  = get_category_by_slug($author_nicename)->description;
+            $author_category = get_category_by_slug($author_nicename);
+
+            $title = '';
+            if ( ! empty( $author_category ) ) {
+                $title = $author_category->description;
+            }
 
         }
 
