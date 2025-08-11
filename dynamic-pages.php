@@ -70,10 +70,9 @@ function parse_weekday_to_name( $number ) {
 }
 
 function mapa_salas_content_handler() {
-
     global $wpdb;
 
-    $reservas = $wpdb->get_results("SELECT * FROM `intranet_wp`.`wp_fafar_cf7crud_submissions` WHERE `object_name` = 'reservation' AND `is_active` = '1'" , 'ARRAY_A' );
+    $reservas = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `object_name` = 'reservation' AND `is_active` = '1'" , 'ARRAY_A' );
 
     //echo count($reservas);
 
@@ -89,7 +88,7 @@ function mapa_salas_content_handler() {
 
 
         // Obtendo disciplina
-        $disciplina = $wpdb->get_results("SELECT * FROM `intranet_wp`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['class_subject'][0] . "'", 'ARRAY_A' );
+        $disciplina = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['class_subject'][0] . "'", 'ARRAY_A' );
 
         if( ! $disciplina ) continue;
 
@@ -97,7 +96,7 @@ function mapa_salas_content_handler() {
 
 
         // Obtendo sala de aula
-        $sala = $wpdb->get_results("SELECT * FROM `intranet_wp`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['place'][0] . "'", 'ARRAY_A' );
+        $sala = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['place'][0] . "'", 'ARRAY_A' );
 
         if( ! $sala ) continue;
 
@@ -109,7 +108,10 @@ function mapa_salas_content_handler() {
 
         $desc = $disciplina['data']['code'] . ' ' . $disciplina['data']['name_of_subject'] . ' (' . $disciplina['data']['group'] . ')';
         
-        if( isset( $reserva['data']['desc'] ) && $reserva['data']['desc'] ) {
+        if( 
+            ! empty( $reserva['data']['desc'] ) && 
+            count( explode( ' ', $reserva['data']['desc'] ) ) > 1
+         ) {
             $code   = explode( ' ', $reserva['data']['desc'] )[0];
             $groups = explode( ' ', $reserva['data']['desc'] )[1];
             $desc   = $code . ' ' . $disciplina['data']['name_of_subject'] . $groups;
