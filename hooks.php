@@ -13,6 +13,7 @@ add_action( 'fafar_cf7crud_before_create', 'site_fafar_before_send_mail_handler'
  * @return array Modified form data or error message.
  */
 function site_fafar_before_send_mail_handler( $form_data ) {
+
     // Validate the form data
     if (
         ! isset( $form_data['object_name'] ) || 
@@ -22,7 +23,7 @@ function site_fafar_before_send_mail_handler( $form_data ) {
     }
 
     // Prepare the API request
-    $api_url = 'http://container_intranet/wp-json/intranet/v1/submissions/auditorium/reservation/';
+    $api_url = 'http://intranet-website/wp-json/intranet/v1/submissions/auditorium/reservation/';
     $args = [
         'method'  => 'POST',
         'headers' => [
@@ -35,18 +36,18 @@ function site_fafar_before_send_mail_handler( $form_data ) {
     $response = wp_remote_request( $api_url, $args );
 
     // Handle API errors
-    if (is_wp_error($response)) {
+    if ( is_wp_error( $response ) ) {
         $error_message = 'Request failed: ' . $response->get_error_message();
-        error_log($error_message);
+        error_log( $error_message );
 
         return [
-            'error_msg' => __('O sistema está passando por manutenção...', 'fafar-cf7crud'),
+            'error_msg' => __( 'O sistema está passando por manutenção...', 'fafar-cf7crud' ),
         ];
     }
 
     // Log the API response
-    $response_body = wp_remote_retrieve_body($response);
-    error_log('API Response: ' . $response_body);
+    $response_body = wp_remote_retrieve_body( $response );
+    error_log( 'API Response: ' . $response_body ); 
 
     // Return true to indicate success
     return $form_data;
