@@ -30,18 +30,20 @@ function get_custom_banner() {
 
             $post_data = get_queried_object();
 
-            $author_id = $post_data->post_author;
-    
-            $author_nicename = get_the_author_meta('user_nicename', $author_id);
+            if ( $post_data !== null ) {
+                
+                $author_id = $post_data->post_author;
+        
+                $author_nicename = get_the_author_meta('user_nicename', $author_id);
 
-            $slider = $wpdb->get_row( "SELECT * FROM wp_revslider_sliders WHERE alias = '$author_nicename'" );
+                $slider = $wpdb->get_row( "SELECT * FROM wp_revslider_sliders WHERE alias = '$author_nicename'" );
 
-            // Banner Content
-            $author_category = get_category_by_slug($author_nicename);
+                // Banner Content
+                $author_category = get_category_by_slug($author_nicename);
 
-            $title = '';
-            if ( ! empty( $author_category ) ) {
-                $title = $author_category->description;
+                if ( ! empty( $author_category ) ) {
+                    $title = $author_category->description;
+                }
             }
 
         }
