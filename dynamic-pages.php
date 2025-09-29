@@ -1,9 +1,64 @@
 <?php
 
-function people_content_handler($people) {
-
+function get_people_from_intranet( $args = [] ) {
     global $wpdb;
 
+     // Store original tables
+    $original_users = $wpdb->users;
+    $original_usermeta = $wpdb->usermeta;
+    $original_options = $wpdb->options;
+    
+    $wpdb->users = INTRANET_DB_NAME . '.wp_users';
+    $wpdb->usermeta = INTRANET_DB_NAME . '.wp_usermeta';
+    $wpdb->options = INTRANET_DB_NAME . '.wp_options';
+
+    $wp_users = get_users( $args );
+
+    $people = [];
+    if ( ! empty( $wp_users ) ) {
+
+        $suppress = $wpdb->suppress_errors();
+        $row      = $wpdb->get_row( "SELECT option_value FROM $wpdb->options WHERE option_name = 'wp_user_roles' LIMIT 1" );
+        $wpdb->suppress_errors( $suppress );
+
+        $intranet_roles = null;
+        if ( is_object( $row ) ) {
+            $intranet_roles = unserialize( $row->option_value );
+        } else {
+            return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+        }
+
+        foreach ( $wp_users as $wp_user ) {
+            $workplace_extension = get_user_meta( $wp_user->ID, 'workplace_extension', true );
+            $user_roles          = array_keys( $wp_user->caps );
+
+            if (
+                ! empty ( $user_roles ) && 
+                ! empty( $intranet_roles ) && 
+                isset( $intranet_roles[$user_roles[0]] )
+            ) {
+                $wp_user->roles[0] = strtoupper( $intranet_roles[$user_roles[0]]['name'] );
+            }
+
+            $people[] = [
+                'display_name'        => $wp_user->display_name,
+                'roles'               => $wp_user->roles,
+                'user_email'          => $wp_user->user_email,
+                'workplace_extension' => $workplace_extension,
+            ];
+        }
+
+    }
+    
+    // Restore original tables
+    $wpdb->users    = $original_users;
+    $wpdb->usermeta = $original_usermeta;
+    $wpdb->options  = $original_options;
+
+    people_content_handler( $people );
+}
+
+function people_content_handler( $people ) {
     $people_table_itens = "";
 
     foreach ( $people as $person ) {
