@@ -518,103 +518,191 @@ function emitir_certificados_content_handler() {
 }
 
 function tecnicos_administrativos_content_handler() {
-    
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel = 1 and ativo = 1 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'TAE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_administrativo_act_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=1 and ativo=1 and setor = 1 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'act', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'TAE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_administrativo_alm_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=1 and ativo=1 and setor = 2 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'alm', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'TAE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_administrativo_fas_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=1 and ativo=1 and setor = 3 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'fas', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'TAE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_administrativo_pfa_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=1 and ativo=1 and setor = 4 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'pfa', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'TAE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_docente_act_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=2 and ativo=1 and setor = 1 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'act', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'DOCENTE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_docente_alm_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=2 and ativo=1 and setor = 2 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'alm', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'DOCENTE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_docente_fas_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=2 and ativo=1 and setor = 3 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'fas', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'DOCENTE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_docente_pfa_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=2 and ativo=1 and setor = 4 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'capability' => 'pfa', 
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'DOCENTE',
+            ]
+        ]
+    ] );
 }
 
 function corpo_docente_all_content_handler() {
-
-    global $wpdb;
-
-    $taes = $wpdb->get_results( 'SELECT * FROM sitefafar.pessoas WHERE nivel=2 and ativo=1 ORDER BY nome' );
-
-    people_content_handler($taes);
-
+    get_people_from_intranet( [
+        'fields'     => 'all',
+        'orderby'    => 'display_name',
+        'meta_query' => [
+        'relation' => 'AND',
+            [
+                'key'   => 'bond_status',
+                'value' => 'ATIVO',
+            ],
+            [
+                'key'   => 'public_servant_bond_category',
+                'value' => 'DOCENTE',
+            ]
+        ]
+    ] );
 }
 
 function dynamic_pages_handler(){
