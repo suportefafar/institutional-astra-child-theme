@@ -63,25 +63,31 @@ function people_content_handler( $people ) {
 
     foreach ( $people as $person ) {
 
-        $nome_formatado = mb_strtolower( $person->nome, 'UTF-8' );
-        $nome_formatado = ucwords( $nome_formatado ); 
+        $lowercase_name = mb_strtolower( $person['display_name'], 'UTF-8' );
+        $normalize_name = ucwords( $lowercase_name );
 
-        $setor = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM sitefafar.setores WHERE id = ' . $person->setor ) );
-        $nome_setor = $setor->descricao;            
+        $sector_name = '';
+        if ( ! empty ( $person['roles'] ) ) {
+            $sector_name = $person['roles'][0];
+        } 
 
         $people_table_itens .= '<tr class="small">';
-        $people_table_itens .= '<th scope="row">' . $nome_formatado . '</th>';
-        $people_table_itens .= '<td>' . $nome_setor . '</td>';
-        $people_table_itens .= '<td>' . $person->email . '</td>';
-        $people_table_itens .= '<td>' . $person->ramal . '</td>';
+        $people_table_itens .= '<th scope="row">' . $normalize_name . '</th>';
+        $people_table_itens .= '<td>' . $sector_name . '</td>';
+        $people_table_itens .= '<td>' . $person['user_email'] . '</td>';
+        $people_table_itens .= '<td>' . $person['workplace_extension'] . '</td>';
         $people_table_itens .= '</tr>';
 
     }
 
-    if(!$people)
-        $people_table_itens = "<tr><td>Nenhum resultado encontrado.<br/>Por favor, tente novamente mais tarde</td></tr>";
+    if( ! $people ) {
+        $people_table_itens = "<tr><td colspan='4'>Nenhum resultado encontrado.<br/>Por favor, tente novamente mais tarde</td></tr>";
+    }
 
     echo '
+        <div style="text-align: right">
+            <em>Tabela gerada automáticamente</em>
+        </div>
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
