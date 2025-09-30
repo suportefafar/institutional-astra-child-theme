@@ -86,7 +86,7 @@ function people_content_handler( $people ) {
 
     echo '
         <div style="text-align: right">
-            <em>Tabela gerada automáticamente</em>
+            <em>Tabela gerada automaticamente</em>
         </div>
         <div class="table-responsive">
             <table class="table table-striped">
