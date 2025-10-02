@@ -36,6 +36,8 @@ require_once get_stylesheet_directory() . '/class-wp-fafar-menu-walker.php';
 require_once get_stylesheet_directory() . '/banner.php';
 // Carregar funções customizadas
 require_once get_stylesheet_directory() . '/hooks.php';
+// 
+require_once get_stylesheet_directory() . '/e-book.php';
 
 /*
  * Changing "Read More" button text  
