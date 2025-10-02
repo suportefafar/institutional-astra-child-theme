@@ -62,7 +62,6 @@ function people_content_handler( $people ) {
     $people_table_itens = "";
 
     foreach ( $people as $person ) {
-
         $lowercase_name = mb_strtolower( $person['display_name'], 'UTF-8' );
         $normalize_name = ucwords( $lowercase_name );
 
@@ -77,7 +76,6 @@ function people_content_handler( $people ) {
         $people_table_itens .= '<td>' . $person['user_email'] . '</td>';
         $people_table_itens .= '<td>' . $person['workplace_extension'] . '</td>';
         $people_table_itens .= '</tr>';
-
     }
 
     if( ! $people ) {
