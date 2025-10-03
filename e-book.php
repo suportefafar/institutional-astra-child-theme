@@ -183,6 +183,10 @@ function institutional_fafar_ebook_show() {
         
         <?php 
             foreach ( $ebooks as $ebook ) :
+                
+                // Se o livro não estiver disponível, pula, né não?
+                if ( $ebook['is_available'] !== '1' ) continue;
+
                 if ( $current_knowledge_area !== $ebook['knowledge_area'] ) : 
                     $current_knowledge_area = $ebook['knowledge_area'];
         ?>
