@@ -32,6 +32,8 @@ function institutional_fafar_ebook_cpt_register() {
             // 'thumbnail',
             // 'page-attributes'
         ),
+        'capability_type' => 'fafar_bib_ebooks_caps', // Unique string for your CPT
+        'map_meta_cap' => true, // Set to true to map meta capabilities
         'capabilities' => array(
                 'edit_post'          => 'edit_fafar_bib_ebook',
                 'read_post'          => 'read_fafar_bib_ebook',
