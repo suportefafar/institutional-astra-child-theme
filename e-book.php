@@ -32,6 +32,16 @@ function institutional_fafar_ebook_cpt_register() {
             // 'thumbnail',
             // 'page-attributes'
         ),
+        'capabilities' => array(
+                'edit_post'          => 'edit_fafar_bib_ebook',
+                'read_post'          => 'read_fafar_bib_ebook',
+                'delete_post'        => 'delete_fafar_bib_ebook',
+                'edit_posts'         => 'edit_fafar_bib_ebooks',
+                'edit_others_posts'  => 'edit_others_fafar_bib_ebooks',
+                'publish_posts'      => 'publish_fafar_bib_ebooks',
+                'read_private_posts' => 'read_private_fafar_bib_ebooks',
+                'create_posts'       => 'create_fafar_bib_ebooks',
+            ),
         'taxonomies' => 'category',
         'rewrite'   => array( 'slug' => 'ebook' ),
         'show_in_rest' => true
