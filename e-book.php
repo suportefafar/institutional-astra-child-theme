@@ -153,7 +153,7 @@ add_action( 'save_post', 'institutional_fafar_ebook_save_meta' );
 function institutional_fafar_ebook_show() {
     $args = array(
         'post_type'      => 'fafar_bib_ebook',
-        'posts_per_page' => 10,
+        'posts_per_page' => -1,
         'meta_query'     => array(
             array(
                 'key'     => '_ebook_available',
