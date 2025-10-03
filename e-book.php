@@ -264,7 +264,7 @@ function institutional_fafar_sort_ebooks( $ebook_loop ) {
         $comp_1 = strcasecmp( $a['knowledge_area'], $b['knowledge_area'] );
         $comp_2 = strcasecmp( $a['title'], $b['title'] );
 
-        if ( $comp_1 === 0 && $comp_1 === 0) return 0;
+        if ( $comp_1 === 0 && $comp_2 === 0) return 0;
         elseif ( $comp_1 === 0 ) return $comp_2;
         elseif ( $comp_1 !== 0 ) return $comp_1;
     } );
