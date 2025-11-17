@@ -30,7 +30,7 @@ add_action( 'wp_enqueue_scripts', 'child_enqueue_styles', 15 );
 require_once get_stylesheet_directory() . '/utils.php';
 // Carrega shortcodes.php
 require_once get_stylesheet_directory() . '/shortcodes.php';
-// 
+// Carrega import-scripts.php
 require_once get_stylesheet_directory() . '/import-scripts.php';
 // Register Custom Navigation Walker
 require_once get_stylesheet_directory() . '/class-wp-fafar-menu-walker.php';
@@ -38,7 +38,7 @@ require_once get_stylesheet_directory() . '/class-wp-fafar-menu-walker.php';
 require_once get_stylesheet_directory() . '/banner.php';
 // Carregar funções customizadas
 require_once get_stylesheet_directory() . '/hooks.php';
-// 
+// Carrega e-book.php
 require_once get_stylesheet_directory() . '/e-book.php';
 
 /*
