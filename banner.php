@@ -5,8 +5,10 @@ function get_custom_banner() {
 	
 	global $wpdb;
     
-	
-	if( !is_search() && !is_404() ) {
+	if( is_search() || is_404() ) {
+        echo '';
+        return;
+    }
 
         // Set a default image URL
         $banner_image_url = 'https://www.farmacia.ufmg.br/wp-content/uploads/2015/06/fafar1.jpg';
