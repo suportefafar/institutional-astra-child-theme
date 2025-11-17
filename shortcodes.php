@@ -11,6 +11,11 @@ function site_fafar_custom_sidebar_menu() {
     // Get menu by user as default option
     $menu = get_menu_by_current_content();
 
+    $category = institutional_fafar_get_category();
+    if ( $category ) {
+        $menu = $category->slug;
+    }
+
     if ( is_home() ) {
 
         $menu = get_secondary_menu();
