@@ -4,10 +4,7 @@ add_shortcode( 'site_fafar_custom_sidebar_menu', 'site_fafar_custom_sidebar_menu
 
 add_shortcode( 'site_fafar_highlight_area', 'site_fafar_highlight_area' );
 
-
 function site_fafar_custom_sidebar_menu() {
-    
-
     // Get menu by user as default option
     $menu = get_menu_by_current_content();
 
@@ -17,15 +14,12 @@ function site_fafar_custom_sidebar_menu() {
     }
 
     if ( is_home() ) {
-
         $menu = get_secondary_menu();
-
     }
 
     /* 
         Rendering the sidemenu with custom Menu Walker
     */
-
     echo wp_nav_menu(array(
         'menu'            => $menu,
         'depth'           => 2,
@@ -44,11 +38,9 @@ function site_fafar_custom_sidebar_menu() {
 */
 
 function get_institucional_menu() {
-
     $INSTITUCIONAL_MENU_ID = 4;
 
     return $INSTITUCIONAL_MENU_ID;
-
 }
 
 function get_secondary_menu() {
@@ -61,38 +53,32 @@ function get_secondary_menu() {
     $menu_locations = get_nav_menu_locations();
     $secondary_menu_location = 'secondary_menu';
     if ( isset( $menu_locations[ $secondary_menu_location ] ) ) {
-
         $secondary_menu_id = $menu_locations[ $secondary_menu_location ];
+        
         $menu = wp_get_nav_menu_object( $secondary_menu_id );
-
     } else {
         // 'Secondary Menu' not found
         $menu = get_institucional_menu();
-        
     }
 
     return $menu;
 }
 
 function get_menu_by_current_content() {
-
     $category = get_the_category();
     if( isset( $category[0] ) ) { // get_queried_object()->post_type == "post"
-        
         return $category[0]->slug;
-
     } 
 
     if ( get_post_field( 'post_author' ) != "" ) { // get_queried_object()->post_type == "page"
-
         $post_author_id = get_post_field( 'post_author' );
-        $user = get_user_by( 'id', $post_author_id );
-        return $user->data->user_nicename;
 
+        $user = get_user_by( 'id', $post_author_id );
+
+        return $user->data->user_nicename;
     }
     
     return get_institucional_menu();
-
 }
 
 
@@ -101,17 +87,14 @@ function get_menu_by_current_content() {
  * retornar a Área de Destaque na página principal
  */
 function site_fafar_highlight_area() {
-
     if ( ! is_user_logged_in() || ! is_home() ) return '';
 
     if ( have_posts() ) {
-
         query_posts('post_type=servicos&showposts=40&orderby=date&order=ASC');
 
         $itens = '';
 
         while ( have_posts() ) {
-
             the_post(); 
             
             $title       = the_title( $before = '', $after = '', $display = false );
@@ -129,9 +112,7 @@ function site_fafar_highlight_area() {
                             <img src="' . $url_img . '" alt="Logo da ' . $title . '" />
                         </a>
                     </div>';
-
         }
-
     }
 
     return '
@@ -143,5 +124,4 @@ function site_fafar_highlight_area() {
         ' . $itens . '
         </div>
     </div>';
-
 }
