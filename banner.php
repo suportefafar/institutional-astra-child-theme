@@ -17,13 +17,10 @@ function get_custom_banner() {
 
         $slider = '';
 
-        $categories = get_the_category();
-    
-        if( isset( $categories[0] ) && !is_home() ) {
+    $category = institutional_fafar_get_category();
 
-            $category = $categories[0];
-                
-            $slider = $wpdb->get_row( "SELECT * FROM wp_revslider_sliders WHERE alias = '$category->slug'" );
+    if( $category ) {
+        $slider = $wpdb->get_row( "SELECT * FROM wp_revslider_sliders WHERE alias = '$category->slug'" );
 
             // Banner Content
             $title  = $category->description;
