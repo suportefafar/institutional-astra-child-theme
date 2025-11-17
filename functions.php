@@ -26,7 +26,9 @@ add_action( 'wp_enqueue_scripts', 'child_enqueue_styles', 15 );
 
 
 
-// 
+// Carrega utils.php
+require_once get_stylesheet_directory() . '/utils.php';
+// Carrega shortcodes.php
 require_once get_stylesheet_directory() . '/shortcodes.php';
 // 
 require_once get_stylesheet_directory() . '/import-scripts.php';
