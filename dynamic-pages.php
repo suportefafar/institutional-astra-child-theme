@@ -1,74 +1,77 @@
 <?php
 
-function get_people_from_intranet( $args = [] ) {
+function get_people_from_intranet($args = [])
+{
     global $wpdb;
 
-     // Store original tables
+    // Store original tables
     $original_users = $wpdb->users;
     $original_usermeta = $wpdb->usermeta;
     $original_options = $wpdb->options;
-    
+
     $wpdb->users = INTRANET_DB_NAME . '.wp_users';
     $wpdb->usermeta = INTRANET_DB_NAME . '.wp_usermeta';
     $wpdb->options = INTRANET_DB_NAME . '.wp_options';
 
-    $wp_users = get_users( $args );
+    $wp_users = get_users($args);
 
     $people = [];
-    if ( ! empty( $wp_users ) ) {
+    if (!empty($wp_users)) {
 
         $suppress = $wpdb->suppress_errors();
-        $row      = $wpdb->get_row( "SELECT option_value FROM $wpdb->options WHERE option_name = 'wp_user_roles' LIMIT 1" );
-        $wpdb->suppress_errors( $suppress );
+        $row = $wpdb->get_row("SELECT option_value FROM $wpdb->options WHERE option_name = 'wp_user_roles' LIMIT 1");
+        $wpdb->suppress_errors($suppress);
 
         $intranet_roles = null;
-        if ( is_object( $row ) ) {
-            $intranet_roles = unserialize( $row->option_value );
-        } else {
-            return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+        if (is_object($row)) {
+            $intranet_roles = unserialize($row->option_value);
+        }
+        else {
+            return apply_filters("default_option_{$option}", $default_value, $option, $passed_default);
         }
 
-        foreach ( $wp_users as $wp_user ) {
-            $workplace_extension = get_user_meta( $wp_user->ID, 'workplace_extension', true );
-            $user_roles          = array_keys( $wp_user->caps );
+        foreach ($wp_users as $wp_user) {
+            $workplace_extension = get_user_meta($wp_user->ID, 'workplace_extension', true);
+            $user_roles = array_keys($wp_user->caps);
 
             if (
-                ! empty ( $user_roles ) && 
-                ! empty( $intranet_roles ) && 
-                isset( $intranet_roles[$user_roles[0]] )
+            !empty($user_roles) &&
+            !empty($intranet_roles) &&
+            isset($intranet_roles[$user_roles[0]])
             ) {
-                $wp_user->roles[0] = strtoupper( $intranet_roles[$user_roles[0]]['name'] );
+                $wp_user->roles[0] = strtoupper($intranet_roles[$user_roles[0]]['name']);
             }
 
             $people[] = [
-                'display_name'        => $wp_user->display_name,
-                'roles'               => $wp_user->roles,
-                'user_email'          => $wp_user->user_email,
+                'display_name' => $wp_user->display_name,
+                'roles' => $wp_user->roles,
+                'user_email' => $wp_user->user_email,
                 'workplace_extension' => $workplace_extension,
             ];
         }
 
     }
-    
-    // Restore original tables
-    $wpdb->users    = $original_users;
-    $wpdb->usermeta = $original_usermeta;
-    $wpdb->options  = $original_options;
 
-    people_content_handler( $people );
+    // Restore original tables
+    $wpdb->users = $original_users;
+    $wpdb->usermeta = $original_usermeta;
+    $wpdb->options = $original_options;
+
+    people_content_handler($people);
 }
 
-function people_content_handler( $people ) {
+function people_content_handler($people)
+{
     $people_table_itens = "";
 
-    foreach ( $people as $person ) {
-        $lowercase_name = mb_strtolower( $person['display_name'], 'UTF-8' );
-        $normalize_name = ucwords( $lowercase_name );
+    foreach ($people as $person) {
+        $lowercase_name = mb_strtolower($person['display_name'], 'UTF-8');
+        $normalize_name = ucwords($lowercase_name);
 
         $sector_name = '';
-        if ( ! empty ( $person['roles'] ) ) {
+        if (!empty($person['roles'])) {
             $sector_name = $person['roles'][0];
-        } 
+        }
 
         $people_table_itens .= '<tr class="small">';
         $people_table_itens .= '<th scope="row">' . $normalize_name . '</th>';
@@ -78,7 +81,7 @@ function people_content_handler( $people ) {
         $people_table_itens .= '</tr>';
     }
 
-    if( ! $people ) {
+    if (!$people) {
         $people_table_itens = "<tr><td colspan='4'>Nenhum resultado encontrado.<br/>Por favor, tente novamente mais tarde</td></tr>";
     }
 
@@ -97,25 +100,29 @@ function people_content_handler( $people ) {
                     </tr>
                 </thead>
                 <tbody>' .
-                    $people_table_itens .
-                '</tbody>
+        $people_table_itens .
+        '</tbody>
             </table>
         </div>';
 
 }
 
 
-function mapa_salas_content_js_handler() {
+function mapa_salas_content_js_handler()
+{
 
     echo '<script src="' . get_stylesheet_directory_uri() . '/assets/js/mapa-de-sala.js"></script>';
 
 }
 
-function parse_weekday_to_name( $number ) {
+function parse_weekday_to_name($number)
+{
 
-    if( ! $number ) return 'N/A';
+    if (!$number)
+        return 'N/A';
 
-    if( ! is_numeric($number) ) return $number;
+    if (!is_numeric($number))
+        return $number;
 
     return array(
         0 => 'Dom',
@@ -128,10 +135,37 @@ function parse_weekday_to_name( $number ) {
     )[(int)$number] ?? '--';
 }
 
-function mapa_salas_content_handler() {
+function mapa_salas_content_handler()
+{
     global $wpdb;
 
-    $reservas = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `object_name` = 'reservation' AND `is_active` = '1'" , 'ARRAY_A' );
+    // Calcular início do semestre atual
+    $mes_atual = (int)date('m');
+    $ano_atual = (int)date('Y');
+
+    // Semestre 1: Fev a Jul (inicia em 01/02)
+    // Semestre 2: Ago a Jan (inicia em 01/08)
+    if ($mes_atual >= 2 && $mes_atual <= 7) {
+        $inicio_semestre = $ano_atual . '-02-01';
+    }
+    else {
+        $ano_inicio = ($mes_atual < 2) ? $ano_atual - 1 : $ano_atual;
+        $inicio_semestre = $ano_inicio . '-08-01';
+    }
+
+    $timestamp_inicio = get_timestamp_by_date($inicio_semestre);
+
+    $reservas = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `object_name` = 'reservation' AND `is_active` = '1'", 'ARRAY_A');
+
+    // Filtrar apenas reservas feitas para o semestre atual
+    $reservas = array_filter($reservas, function ($reserva) use ($timestamp_inicio) {
+        $data_execucao = $reserva['data']['date'] ?? $reserva['created_at'] ?? null;
+
+        if (!$data_execucao)
+            return true; // Se não houver data, mantém para não quebrar
+
+        return strtotime($data_execucao) >= $timestamp_inicio;
+    });
 
     //echo count($reservas);
 
@@ -139,69 +173,73 @@ function mapa_salas_content_handler() {
 
     $line_objs = [];
 
-    foreach ( $reservas as $reserva ) {
+    foreach ($reservas as $reserva) {
 
-        $reserva['data'] = json_decode( $reserva['data'], true );
+        $reserva['data'] = json_decode($reserva['data'], true);
 
-        if( ! $reserva['data']['class_subject'] || ! $reserva['data']['place'] ) continue;
+        if (!$reserva['data']['class_subject'] || !$reserva['data']['place'])
+            continue;
 
 
         // Obtendo disciplina
-        $disciplina = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['class_subject'][0] . "'", 'ARRAY_A' );
+        $disciplina = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['class_subject'][0] . "'", 'ARRAY_A');
 
-        if( ! $disciplina ) continue;
+        if (!$disciplina)
+            continue;
 
-        $disciplina['data'] = json_decode( $disciplina[0]['data'], true );
+        $disciplina['data'] = json_decode($disciplina[0]['data'], true);
 
 
         // Obtendo sala de aula
-        $sala = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['place'][0] . "'", 'ARRAY_A' );
+        $sala = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['place'][0] . "'", 'ARRAY_A');
 
-        if( ! $sala ) continue;
+        if (!$sala)
+            continue;
 
-        $sala['data'] = json_decode( $sala[0]['data'], true );
+        $sala['data'] = json_decode($sala[0]['data'], true);
 
 
-        
-        $dias_da_semana = implode( ', ', array_map( function( $weekday ) { return parse_weekday_to_name( $weekday ); }, (array) $reserva['data']['weekdays'] ) );
+
+        $dias_da_semana = implode(', ', array_map(function ($weekday) {
+            return parse_weekday_to_name($weekday); }, (array)$reserva['data']['weekdays']));
 
         $desc = $disciplina['data']['code'] . ' ' . $disciplina['data']['name_of_subject'] . ' (' . $disciplina['data']['group'] . ')';
-        
-        if( 
-            ! empty( $reserva['data']['desc'] ) && 
-            count( explode( ' ', $reserva['data']['desc'] ) ) > 1
-         ) {
-            $code   = explode( ' ', $reserva['data']['desc'] )[0];
-            $groups = explode( ' ', $reserva['data']['desc'] )[1];
-            $desc   = $code . ' ' . $disciplina['data']['name_of_subject'] . $groups;
+
+        if (
+        !empty($reserva['data']['desc']) &&
+        count(explode(' ', $reserva['data']['desc'])) > 1
+        ) {
+            $code = explode(' ', $reserva['data']['desc'])[0];
+            $groups = explode(' ', $reserva['data']['desc'])[1];
+            $desc = $code . ' ' . $disciplina['data']['name_of_subject'] . $groups;
         }
 
         $line_objs[] = array(
-            'desc_reserva'     => $desc,
-            'desc_sala'        => $sala['data']['number'] . ' <br />Bloco: ' . $sala['data']['block'] . ' <br />Andar: ' . $sala['data']['floor'] . 'º',
-            'dias_semana'      => $dias_da_semana,
-            'hora_inicio'      => $reserva['data']['start_time'],
-            'hora_fim'         => $reserva['data']['end_time'],
+            'desc_reserva' => $desc,
+            'desc_sala' => $sala['data']['number'] . ' <br />Bloco: ' . $sala['data']['block'] . ' <br />Andar: ' . $sala['data']['floor'] . 'º',
+            'dias_semana' => $dias_da_semana,
+            'hora_inicio' => $reserva['data']['start_time'],
+            'hora_fim' => $reserva['data']['end_time'],
         );
 
     }
 
     // Ordenar pelo código da disciplina
-    usort( $line_objs, function( $a, $b ) {
+    usort($line_objs, function ($a, $b) {
         return $a['desc_reserva'] <=> $b['desc_reserva']; // Sort ascending
-    } );
+    });
 
     $lines = "";
 
-    foreach( $line_objs as $line_obj ) {
+    foreach ($line_objs as $line_obj) {
 
         $lines .= '<tr class="small">' .
-                    '<th scope="row">' . $line_obj['desc_reserva']. '</th>' .
-                    '<td>' . $line_obj['desc_sala'] . '</td>' .
-                    '<td>' . $line_obj['dias_semana'] . '</td>' .
-                    '<td>' . $line_obj['hora_inicio'] . '</td>' .
-                    '<td>' . $line_obj['hora_fim'] . '</td>' .
-                '</tr>';
+            '<th scope="row">' . $line_obj['desc_reserva'] . '</th>' .
+            '<td>' . $line_obj['desc_sala'] . '</td>' .
+            '<td>' . $line_obj['dias_semana'] . '</td>' .
+            '<td>' . $line_obj['hora_inicio'] . '</td>' .
+            '<td>' . $line_obj['hora_fim'] . '</td>' .
+            '</tr>';
 
     }
 
@@ -226,8 +264,8 @@ function mapa_salas_content_handler() {
                             </tr>
                         </thead>
                         <tbody id="tbody_mapa_sala">' .
-                            $lines .
-                        '</tbody>
+        $lines .
+        '</tbody>
                     </table>
                 </div>
             </div>';
@@ -236,102 +274,113 @@ function mapa_salas_content_handler() {
 
 }
 
-function separe_unique( $arr ) {
+function separe_unique($arr)
+{
 
     $arr_u = array();
 
-    $inicio_semestre = get_timestamp_by_date( '2024-09-23' );
-    foreach ( $arr as $item ) {
+    $inicio_semestre = get_timestamp_by_date('2024-09-23');
+    foreach ($arr as $item) {
 
-        if ( ( (int) $item->inicio ) < ( $inicio_semestre * 1000) ) continue;
+        if (((int)$item->inicio) < ($inicio_semestre * 1000))
+            continue;
 
-        if ( ( (int) $item->frequencia ) == 0 ) continue;
+        if (((int)$item->frequencia) == 0)
+            continue;
 
         $key_item = $item->sala . "." .
-                    $item->cod_disciplina . "." .
-                    $item->diasemana . "." .
-                    $item->horainicio . "." .
-                    $item->horafim;
+            $item->cod_disciplina . "." .
+            $item->diasemana . "." .
+            $item->horainicio . "." .
+            $item->horafim;
 
         $val_item = $item->id . "." .
-                    $item->inicio . "." .
-                    $item->fim;
-                    
-        if( !isset($arr_u[$key_item]) ) $arr_u[$key_item] = $val_item;  
+            $item->inicio . "." .
+            $item->fim;
+
+        if (!isset($arr_u[$key_item]))
+            $arr_u[$key_item] = $val_item;
 
     }
 
     return $arr_u;
 }
 
-function obterObjetoPorID( $id, $arr ) {
+function obterObjetoPorID($id, $arr)
+{
 
-    foreach ( $arr as $item ) {
+    foreach ($arr as $item) {
 
-        if ( $id === $item->id ) return $item;
+        if ($id === $item->id)
+            return $item;
 
     }
-    
+
     return false;
 
 }
 
-function get_timestamp_by_date( $date ) {
+function get_timestamp_by_date($date)
+{
 
-    $d = date_create( $date, new DateTimeZone('America/Sao_Paulo') );
+    $d = date_create($date, new DateTimeZone('America/Sao_Paulo'));
     return $d->getTimestamp();
 
 }
 
-function intranet_fafar_api_get_hours_by_timestamp( $timestamp ) {
+function intranet_fafar_api_get_hours_by_timestamp($timestamp)
+{
 
-    $d = date_create( "now", new DateTimeZone('America/Sao_Paulo') );
-    $d->setTimestamp((int) $timestamp);
+    $d = date_create("now", new DateTimeZone('America/Sao_Paulo'));
+    $d->setTimestamp((int)$timestamp);
 
     return $d->format('H:i');
 
 }
 
-function ementas_content_handler() {
+function ementas_content_handler()
+{
     echo "EMENTAS";
 }
 
-function baixar_ementas_content_js_handler() {
+function baixar_ementas_content_js_handler()
+{
 
     echo '<script src="' . get_stylesheet_directory_uri() . '/assets/js/baixar-ementas.js"></script>';
 
 }
 
-function baixar_ementas_content_handler() {
+function baixar_ementas_content_handler()
+{
 
     global $wpdb;
 
-    $versions = $wpdb->get_results( "SELECT * FROM tipo_ementas WHERE ativo = 1 ORDER BY id DESC" );
+    $versions = $wpdb->get_results("SELECT * FROM tipo_ementas WHERE ativo = 1 ORDER BY id DESC");
 
     $versions_options = "";
 
     $disciplines_table_itens = "";
 
-    foreach ( $versions as $version ) {
+    foreach ($versions as $version) {
 
         $versions_options .= '<option value="' . $version->descricao . '">' . $version->descricao . '</option>';
 
     }
 
-    foreach ( $versions as $version ) {
+    foreach ($versions as $version) {
 
-        $disciplines = $wpdb->get_results( "SELECT * FROM ementas WHERE versao= $version->id ORDER BY cod_disciplina, nome" );
+        $disciplines = $wpdb->get_results("SELECT * FROM ementas WHERE versao= $version->id ORDER BY cod_disciplina, nome");
 
-        foreach ( $disciplines as $discipline ) {
+        foreach ($disciplines as $discipline) {
 
             $disciplines_table_itens .= '<tr class="small">' .
-                                            '<th scope="row">' . $version->descricao . '</th>' .
-                                            '<td>' . $discipline->cod_disciplina . '</td>' .
-                                            '<td>' . $discipline->nome . '</td>' .
-                                            '<td> <a href="' . $discipline->arquivo_ementa . '" class="btn" target="_blank"><i class="bi bi-download"></i></a> </td>' .
-                                        '</tr>';
+                '<th scope="row">' . $version->descricao . '</th>' .
+                '<td>' . $discipline->cod_disciplina . '</td>' .
+                '<td>' . $discipline->nome . '</td>' .
+                '<td> <a href="' . $discipline->arquivo_ementa . '" class="btn" target="_blank"><i class="bi bi-download"></i></a> </td>' .
+                '</tr>';
 
-        } 
+        }
 
     }
 
@@ -372,40 +421,43 @@ function baixar_ementas_content_handler() {
                             </tr>
                         </thead>
                         <tbody id="tbody_baixar_ementas">' .
-                            $disciplines_table_itens .
-                        '</tbody>
+        $disciplines_table_itens .
+        '</tbody>
                     </table>
                 </div>
         </div>';
 
 }
 
-function validar_ementas_content_js_handler() {
+function validar_ementas_content_js_handler()
+{
 
     echo '<script src="' . get_stylesheet_directory_uri() . '/assets/js/verificar-ementa.js"></script>';
 
 }
 
-function validar_ementas_content_handler() {
+function validar_ementas_content_handler()
+{
 
     global $wpdb;
 
-    if( isset( $_GET["codigo"] ) ) {
+    if (isset($_GET["codigo"])) {
 
         $result = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT * FROM ementas a JOIN tipo_ementas b ON a.versao = b.id WHERE cod_ementa = %s",
-                $_GET["codigo"]));
+            "SELECT * FROM ementas a JOIN tipo_ementas b ON a.versao = b.id WHERE cod_ementa = %s",
+            $_GET["codigo"]));
 
-        if ( ! $result ) {
+        if (!$result) {
 
-            echo  "<div id='alert-to-collapse' class='alert alert-danger' role='alert'>
+            echo "<div id='alert-to-collapse' class='alert alert-danger' role='alert'>
                         Código de ementa inválido! ('" . $_GET["codigo"] . "')
                     </div>";
 
-        } else {
+        }
+        else {
 
-            echo    "<div class='table-responsive'>
+            echo "<div class='table-responsive'>
                         <table class='table'>
                             <tbody>
                                 <tr>
@@ -432,7 +484,7 @@ function validar_ementas_content_handler() {
                         </table>
                     </div>
                     <hr class='my-5' />";
-                    
+
         }
 
     }
@@ -441,13 +493,15 @@ function validar_ementas_content_handler() {
 
 }
 
-function emitir_certificados_content_js_handler() {
+function emitir_certificados_content_js_handler()
+{
 
     echo '<script src="' . get_stylesheet_directory_uri() . '/assets/js/emitir-certificados.js"></script>';
 
 }
 
-function onFormRequestHandler() {
+function onFormRequestHandler()
+{
 
     global $wpdb;
 
@@ -464,9 +518,9 @@ function onFormRequestHandler() {
     echo "<th><b>Certificado</b></th>";
     echo "</tr>";
 
-    foreach( $result as $row ) {
+    foreach ($result as $row) {
         $nome = $row->participante;
-        $curso = $row->Titulo; 
+        $curso = $row->Titulo;
         $codigo = $row->Codigo;
         echo "<tr><td>$curso</td><td><a target='_blank' href='http://www.farmacia.ufmg.br/certificado-fitoterpia-2021?codigo=$codigo'><img width='20' weight='20'  title='Imprimir Certificado' src='http://www.farmacia.ufmg.br/Intranet/imagens/CERTIFICADO-digital-icon.jpg'></tr>";
     }
@@ -475,7 +529,8 @@ function onFormRequestHandler() {
 
 }
 
-function emitir_certificados_content_handler() {
+function emitir_certificados_content_handler()
+{
 
     echo '<form class="mb-3" id="form_emitir_certificados" action="/emitir-certificados" method="POST">
             <div class="mb-3">
@@ -511,207 +566,219 @@ function emitir_certificados_content_handler() {
             <button type="submit" class="btn btn-primary">Buscar</button>
         </form>';
 
-        //if( isset( $_POST["evento"] ) && isset( $_POST["nome"] ) ) onFormRequestHandler();
+//if( isset( $_POST["evento"] ) && isset( $_POST["nome"] ) ) onFormRequestHandler();
 
 }
 
-function tecnicos_administrativos_content_handler() {
-    get_people_from_intranet( [
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function tecnicos_administrativos_content_handler()
+{
+    get_people_from_intranet([
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'TAE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_administrativo_act_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'act', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_administrativo_act_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'act',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'TAE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_administrativo_alm_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'alm', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_administrativo_alm_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'alm',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'TAE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_administrativo_fas_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'fas', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_administrativo_fas_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'fas',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'TAE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_administrativo_pfa_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'pfa', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_administrativo_pfa_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'pfa',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'TAE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_docente_act_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'act', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_docente_act_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'act',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'DOCENTE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_docente_alm_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'alm', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_docente_alm_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'alm',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'DOCENTE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_docente_fas_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'fas', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_docente_fas_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'fas',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'DOCENTE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_docente_pfa_content_handler() {
-    get_people_from_intranet( [
-        'capability' => 'pfa', 
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_docente_pfa_content_handler()
+{
+    get_people_from_intranet([
+        'capability' => 'pfa',
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'DOCENTE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function corpo_docente_all_content_handler() {
-    get_people_from_intranet( [
-        'fields'     => 'all',
-        'orderby'    => 'display_name',
+function corpo_docente_all_content_handler()
+{
+    get_people_from_intranet([
+        'fields' => 'all',
+        'orderby' => 'display_name',
         'meta_query' => [
-        'relation' => 'AND',
+            'relation' => 'AND',
             [
-                'key'   => 'bond_status',
+                'key' => 'bond_status',
                 'value' => 'ATIVO',
             ],
             [
-                'key'   => 'public_servant_bond_category',
+                'key' => 'public_servant_bond_category',
                 'value' => 'DOCENTE',
             ]
         ]
-    ] );
+    ]);
 }
 
-function dynamic_pages_handler(){
+function dynamic_pages_handler()
+{
 
-    if( is_page( "mapa-de-salas" ) || is_page( "mapa-de-salas-2" ) ) {
+    if (is_page("mapa-de-salas") || is_page("mapa-de-salas-2")) {
 
         mapa_salas_content_handler();
 
-        add_action( 'astra_body_bottom', 'mapa_salas_content_js_handler' );
+        add_action('astra_body_bottom', 'mapa_salas_content_js_handler');
 
-    } else if( is_page( "emitir-certificados" ) ) {
+    }
+    else if (is_page("emitir-certificados")) {
 
         //emitir_certificados_content_handler();
 
@@ -719,75 +786,90 @@ function dynamic_pages_handler(){
 
         echo "Em manutenção...";
 
-    } else if( is_page( "ementas" ) ) {
+    }
+    else if (is_page("ementas")) {
 
         ementas_content_handler();
 
-        //add_action( 'astra_body_bottom', 'baixar_ementas_content_js_handler' );
+    //add_action( 'astra_body_bottom', 'baixar_ementas_content_js_handler' );
 
-    } else if( is_page( "baixar-ementas" ) ) {
+    }
+    else if (is_page("baixar-ementas")) {
 
         baixar_ementas_content_handler();
 
-        add_action( 'astra_body_bottom', 'baixar_ementas_content_js_handler' );
+        add_action('astra_body_bottom', 'baixar_ementas_content_js_handler');
 
-    } else if( is_page( "validarementa" ) ) {
+    }
+    else if (is_page("validarementa")) {
 
         validar_ementas_content_handler();
 
-        add_action( 'astra_body_bottom', 'validar_ementas_content_js_handler' );
+        add_action('astra_body_bottom', 'validar_ementas_content_js_handler');
 
-    } else if( is_page( "baixar-ementas-biomedicina" ) ) {
+    }
+    else if (is_page("baixar-ementas-biomedicina")) {
 
         baixar_ementas_content_handler();
 
-        add_action( 'astra_body_bottom', 'baixar_ementas_content_js_handler' );
+        add_action('astra_body_bottom', 'baixar_ementas_content_js_handler');
 
-    } else if( is_page( "tecnicos-administrativos" ) ) {
+    }
+    else if (is_page("tecnicos-administrativos")) {
 
         tecnicos_administrativos_content_handler();
-        
-    } else if( is_page( "corpo-administrativo-act" ) ) {
+
+    }
+    else if (is_page("corpo-administrativo-act")) {
 
         corpo_administrativo_act_content_handler();
 
-    } else if( is_page( "corpo-administrativo-alm" ) ) {
+    }
+    else if (is_page("corpo-administrativo-alm")) {
 
         corpo_administrativo_alm_content_handler();
 
-    } else if( is_page( "corpo-administrativo-fas" ) ) {
+    }
+    else if (is_page("corpo-administrativo-fas")) {
 
         corpo_administrativo_fas_content_handler();
 
-    } else if( is_page( "corpo-administrativo-pfa" ) ) {
+    }
+    else if (is_page("corpo-administrativo-pfa")) {
 
         corpo_administrativo_pfa_content_handler();
 
-    } else if( is_page( "corpo-docente-act" ) ) {
+    }
+    else if (is_page("corpo-docente-act")) {
 
         corpo_docente_act_content_handler();
 
-    } else if( is_page( "corpo-docente-alm" ) ) {
+    }
+    else if (is_page("corpo-docente-alm")) {
 
         corpo_docente_alm_content_handler();
 
-    } else if( is_page( "corpo-docente-2" ) ) {
+    }
+    else if (is_page("corpo-docente-2")) {
 
         corpo_docente_fas_content_handler();
 
-    } else if( is_page( "corpo-docente-pfa" ) ) {
+    }
+    else if (is_page("corpo-docente-pfa")) {
 
         corpo_docente_pfa_content_handler();
 
-    } else if( is_page( "corpo-docente" ) ) {
+    }
+    else if (is_page("corpo-docente")) {
 
         corpo_docente_all_content_handler();
 
-    } else {
+    }
+    else {
 
-        // Any other page
+    // Any other page
 
     }
 }
 
-add_action( 'astra_entry_content_before', 'dynamic_pages_handler' );
+add_action('astra_entry_content_before', 'dynamic_pages_handler');
