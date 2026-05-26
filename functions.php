@@ -40,6 +40,8 @@ require_once get_stylesheet_directory() . '/banner.php';
 require_once get_stylesheet_directory() . '/hooks.php';
 // Carrega e-book.php
 require_once get_stylesheet_directory() . '/e-book.php';
+// Carrega permissões personalizadas para o usuário 123
+require_once get_stylesheet_directory() . '/cenex-permissions.php';
 
 /*
  * Changing "Read More" button text  
