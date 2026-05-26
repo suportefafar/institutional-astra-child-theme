@@ -96,7 +96,7 @@ function custom_cenex_admin_posts_query( $query ) {
         return;
     }
 
-    $expiration_date = strtotime( '2026-12-01 23:59:59' );
+    $expiration_date = strtotime( '2026-12-31 23:59:59' );
     if ( time() > $expiration_date ) {
         return;
     }
@@ -107,4 +107,25 @@ function custom_cenex_admin_posts_query( $query ) {
     if ( (string) $current_author === (string) $user_id ) {
         $query->set( 'author', $user_id . ',' . $GLOBALS['cenex_target_user_id'] );
     }
+}
+
+// Força que os novos posts ou páginas criados pelo usuário delegado sejam do usuário alvo
+add_filter( 'wp_insert_post_data', 'custom_cenex_force_post_author', 10, 2 );
+function custom_cenex_force_post_author( $data, $postarr ) {
+    $current_user_id = get_current_user_id();
+    
+    if ( $current_user_id != $GLOBALS['cenex_delegated_user_id'] ) {
+        return $data;
+    }
+
+    $expiration_date = strtotime( '2026-12-31 23:59:59' );
+    if ( time() > $expiration_date ) {
+        return $data;
+    }
+
+    if ( isset( $data['post_type'] ) && in_array( $data['post_type'], array( 'post', 'page' ) ) ) {
+        $data['post_author'] = $GLOBALS['cenex_target_user_id'];
+    }
+
+    return $data;
 }
