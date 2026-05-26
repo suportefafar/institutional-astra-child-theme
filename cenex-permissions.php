@@ -129,3 +129,41 @@ function custom_cenex_force_post_author( $data, $postarr ) {
 
     return $data;
 }
+
+// Força que os posts criados/editados pelo usuário delegado tenham a categoria "CENEX"
+add_action( 'save_post', 'custom_cenex_force_post_category', 10, 3 );
+function custom_cenex_force_post_category( $post_id, $post, $update ) {
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+    if ( wp_is_post_revision( $post_id ) ) return;
+
+    $current_user_id = get_current_user_id();
+    if ( $current_user_id != $GLOBALS['cenex_delegated_user_id'] ) {
+        return;
+    }
+
+    $expiration_date = strtotime( '2026-12-31 23:59:59' );
+    if ( time() > $expiration_date ) {
+        return;
+    }
+
+    // Aplica a categoria se o tipo de post suportar categorias (geralmente "post")
+    if ( is_object_in_taxonomy( $post->post_type, 'category' ) ) {
+        $category = get_term_by( 'slug', 'cenex', 'category' );
+        if ( ! $category ) {
+            $category = get_term_by( 'name', 'CENEX', 'category' );
+        }
+        
+        if ( ! $category ) {
+            $cat_info = wp_insert_term( 'CENEX', 'category', array( 'slug' => 'cenex' ) );
+            if ( ! is_wp_error( $cat_info ) ) {
+                $cat_id = $cat_info['term_id'];
+            }
+        } else {
+            $cat_id = $category->term_id;
+        }
+
+        if ( isset( $cat_id ) ) {
+            wp_set_post_categories( $post_id, array( $cat_id ), true ); // true para adicionar (append)
+        }
+    }
+}
