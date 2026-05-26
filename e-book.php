@@ -44,7 +44,7 @@ function institutional_fafar_ebook_cpt_register() {
                 'read_private_posts' => 'read_private_fafar_bib_ebooks',
                 'create_posts'       => 'create_fafar_bib_ebooks',
             ),
-        'taxonomies' => 'category',
+        'taxonomies' => array('category'),
         'rewrite'   => array( 'slug' => 'ebook' ),
         'show_in_rest' => true
     );

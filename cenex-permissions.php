@@ -3,14 +3,18 @@
  * Permissions for User 123 over User 22 ("cenex")
  */
 
-// Dynamically grant capabilities to user 123 for user 22's posts/pages
+// Defina as variáveis globais aqui para facilitar a alteração dos IDs
+$GLOBALS['cenex_delegated_user_id'] = getenv('CENEX_DELEGATED_USER_ID') ? intval(getenv('CENEX_DELEGATED_USER_ID')) : 62; // O ID do usuário que vai ganhar o acesso (puxa do .env)
+$GLOBALS['cenex_target_user_id'] = 22;    // O ID do dono original (ex: cenex) dos posts/páginas
+
+// Dynamically grant capabilities for the target user's posts/pages
 add_filter( 'user_has_cap', 'custom_cenex_user_permissions', 10, 4 );
 function custom_cenex_user_permissions( $allcaps, $caps, $args, $user ) {
-    if ( $user->ID != 123 ) {
+    if ( $user->ID != $GLOBALS['cenex_delegated_user_id'] ) {
         return $allcaps;
     }
 
-    $expiration_date = strtotime( '2026-12-01 23:59:59' );
+    $expiration_date = strtotime( '2026-12-31 23:59:59' );
     if ( time() > $expiration_date ) {
         return $allcaps;
     }
@@ -42,9 +46,31 @@ function custom_cenex_user_permissions( $allcaps, $caps, $args, $user ) {
         
         if ( in_array( $cap_requested, $target_caps ) && isset( $args[2] ) ) {
             $post = get_post( $args[2] );
-            if ( $post && $post->post_author == 22 ) {
+            if ( $post && $post->post_author == $GLOBALS['cenex_target_user_id'] ) {
                 foreach ( $caps as $cap ) {
                     $allcaps[ $cap ] = true;
+                }
+            }
+        }
+
+        // Handle REST API (Gutenberg) checking edit_others_posts without passing the post ID
+        if ( in_array( $cap_requested, array( 'edit_others_posts', 'edit_others_pages' ) ) && ! isset( $args[2] ) ) {
+            $post_id = 0;
+            if ( isset( $_REQUEST['post'] ) ) {
+                $post_id = intval( $_REQUEST['post'] );
+            } elseif ( isset( $_REQUEST['post_ID'] ) ) {
+                $post_id = intval( $_REQUEST['post_ID'] );
+            } else {
+                $uri = $_SERVER['REQUEST_URI'] ?? '';
+                if ( preg_match( '#/wp/v2/(?:posts|pages|[\w-]+)/(\d+)#', $uri, $matches ) ) {
+                    $post_id = intval( $matches[1] );
+                }
+            }
+
+            if ( $post_id ) {
+                $post = get_post( $post_id );
+                if ( $post && $post->post_author == $GLOBALS['cenex_target_user_id'] ) {
+                    $allcaps[ $cap_requested ] = true;
                 }
             }
         }
@@ -53,7 +79,7 @@ function custom_cenex_user_permissions( $allcaps, $caps, $args, $user ) {
     return $allcaps;
 }
 
-// Modify the query in WP Admin to allow user 123 to see posts/pages from user 22
+// Modify the query in WP Admin to allow user 62 to see posts/pages from user 22
 add_action( 'pre_get_posts', 'custom_cenex_admin_posts_query' );
 function custom_cenex_admin_posts_query( $query ) {
     if ( ! is_admin() || ! $query->is_main_query() ) {
@@ -66,7 +92,7 @@ function custom_cenex_admin_posts_query( $query ) {
     }
 
     $user_id = get_current_user_id();
-    if ( $user_id != 123 ) {
+    if ( $user_id != $GLOBALS['cenex_delegated_user_id'] ) {
         return;
     }
 
@@ -79,6 +105,6 @@ function custom_cenex_admin_posts_query( $query ) {
     // We change it to allow seeing their own posts AND user 22's posts.
     $current_author = $query->get( 'author' );
     if ( (string) $current_author === (string) $user_id ) {
-        $query->set( 'author', $user_id . ',22' );
+        $query->set( 'author', $user_id . ',' . $GLOBALS['cenex_target_user_id'] );
     }
 }
