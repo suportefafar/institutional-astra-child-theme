@@ -137,6 +137,15 @@ function parse_weekday_to_name($number)
 
 function mapa_salas_content_handler()
 {
+    // Não listar disciplinas/reservas até 30/07/2026
+    $hoje = date_create('now', new DateTimeZone('America/Sao_Paulo'))->format('Y-m-d');
+    if ($hoje <= '2026-07-30') {
+        echo '<div class="alert alert-info mt-5" role="alert">
+            As disciplinas e reservas estarão disponíveis a partir de 31/07/2026.
+        </div>';
+        return;
+    }
+
     global $wpdb;
 
     // Calcular início do semestre atual
@@ -775,7 +784,10 @@ function dynamic_pages_handler()
 
         mapa_salas_content_handler();
 
-        add_action('astra_body_bottom', 'mapa_salas_content_js_handler');
+        $hoje = date_create('now', new DateTimeZone('America/Sao_Paulo'))->format('Y-m-d');
+        if ($hoje > '2026-07-30') {
+            add_action('astra_body_bottom', 'mapa_salas_content_js_handler');
+        }
 
     }
     else if (is_page("emitir-certificados")) {
