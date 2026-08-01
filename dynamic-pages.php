@@ -157,6 +157,16 @@ function mapa_salas_content_handler()
 
     $reservas = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `object_name` = 'reservation' AND `is_active` = '1'", 'ARRAY_A');
 
+    // Decodifica os payloads antes do filtro para usar a data real da reserva.
+    foreach ($reservas as &$reserva) {
+        $reserva['data'] = json_decode($reserva['data'], true);
+
+        if (!is_array($reserva['data'])) {
+            $reserva['data'] = [];
+        }
+    }
+    unset($reserva);
+
     // Filtrar apenas reservas feitas para o semestre atual
     $reservas = array_filter($reservas, function ($reserva) use ($timestamp_inicio) {
         $data_execucao = $reserva['data']['date'] ?? $reserva['created_at'] ?? null;
@@ -167,43 +177,60 @@ function mapa_salas_content_handler()
         return strtotime($data_execucao) >= $timestamp_inicio;
     });
 
-    //echo count($reservas);
+    $objetos_referenciados = [];
 
-    //print_r($reservas[0]);
+    foreach ($reservas as $reserva) {
+        $disciplina_id = $reserva['data']['class_subject'][0] ?? null;
+        $sala_id = $reserva['data']['place'][0] ?? null;
+
+        if ($disciplina_id) {
+            $objetos_referenciados[(string)$disciplina_id] = null;
+        }
+
+        if ($sala_id) {
+            $objetos_referenciados[(string)$sala_id] = null;
+        }
+    }
+
+    // Busca disciplinas e salas em lote, preservando os IDs alfanuméricos.
+    if ($objetos_referenciados) {
+        $placeholders = implode(', ', array_fill(0, count($objetos_referenciados), '%s'));
+        $query = $wpdb->prepare(
+            "SELECT `id`, `data` FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` IN ({$placeholders})",
+            array_keys($objetos_referenciados)
+        );
+        $objetos = $wpdb->get_results($query, 'ARRAY_A');
+
+        foreach ($objetos as $objeto) {
+            $data = json_decode($objeto['data'], true);
+            $objetos_referenciados[(string)$objeto['id']] = is_array($data) ? $data : null;
+        }
+    }
 
     $line_objs = [];
 
     foreach ($reservas as $reserva) {
 
-        $reserva['data'] = json_decode($reserva['data'], true);
-
-        if (!$reserva['data']['class_subject'] || !$reserva['data']['place'])
+        if (empty($reserva['data']['class_subject'][0]) || empty($reserva['data']['place'][0]))
             continue;
 
+        $disciplina_id = (string)$reserva['data']['class_subject'][0];
+        $sala_id = (string)$reserva['data']['place'][0];
+        $disciplina = $objetos_referenciados[$disciplina_id] ?? null;
+        $sala = $objetos_referenciados[$sala_id] ?? null;
 
-        // Obtendo disciplina
-        $disciplina = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['class_subject'][0] . "'", 'ARRAY_A');
-
-        if (!$disciplina)
+        if (!$disciplina || !$sala)
             continue;
-
-        $disciplina['data'] = json_decode($disciplina[0]['data'], true);
-
-
-        // Obtendo sala de aula
-        $sala = $wpdb->get_results("SELECT * FROM `" . INTRANET_DB_NAME . "`.`wp_fafar_cf7crud_submissions` WHERE `id` = '" . $reserva['data']['place'][0] . "'", 'ARRAY_A');
-
-        if (!$sala)
-            continue;
-
-        $sala['data'] = json_decode($sala[0]['data'], true);
 
 
 
         $dias_da_semana = implode(', ', array_map(function ($weekday) {
-            return parse_weekday_to_name($weekday); }, (array)$reserva['data']['weekdays']));
+            return parse_weekday_to_name($weekday); }, (array)($reserva['data']['weekdays'] ?? [])));
 
-        $desc = $disciplina['data']['code'] . ' ' . $disciplina['data']['name_of_subject'] . ' (' . $disciplina['data']['group'] . ')';
+        $codigo_disciplina = $disciplina['code'] ?? '';
+        $nome_disciplina = $disciplina['name_of_subject'] ?? '';
+        $turma = $disciplina['group'] ?? '';
+        $desc = trim($codigo_disciplina . ' ' . $nome_disciplina . ($turma !== '' ? ' (' . $turma . ')' : ''));
 
         if (
         !empty($reserva['data']['desc']) &&
@@ -211,15 +238,15 @@ function mapa_salas_content_handler()
         ) {
             $code = explode(' ', $reserva['data']['desc'])[0];
             $groups = explode(' ', $reserva['data']['desc'])[1];
-            $desc = $code . ' ' . $disciplina['data']['name_of_subject'] . $groups;
+            $desc = trim($code . ' ' . $nome_disciplina . ' ' . $groups);
         }
 
         $line_objs[] = array(
             'desc_reserva' => $desc,
-            'desc_sala' => $sala['data']['number'] . ' <br />Bloco: ' . $sala['data']['block'] . ' <br />Andar: ' . $sala['data']['floor'] . 'º',
+            'desc_sala' => ($sala['number'] ?? '') . ' <br />Bloco: ' . ($sala['block'] ?? '') . ' <br />Andar: ' . ($sala['floor'] ?? '') . 'º',
             'dias_semana' => $dias_da_semana,
-            'hora_inicio' => $reserva['data']['start_time'],
-            'hora_fim' => $reserva['data']['end_time'],
+            'hora_inicio' => $reserva['data']['start_time'] ?? '',
+            'hora_fim' => $reserva['data']['end_time'] ?? '',
         );
 
     }
