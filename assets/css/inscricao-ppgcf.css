@@ -1,0 +1,350 @@
+/* Formulário PPGCF: estilos limitados à página e ao seu formulário. */
+.fafar-inscricao-page-content {
+  max-width: 100%;
+}
+
+.fafar-inscricao-form {
+  --fafar-primary: #F2B600;
+  --fafar-secondary: #404040;
+  --fafar-border: #cfcfcf;
+  --fafar-muted: #666666;
+  color: var(--fafar-secondary);
+  margin: 1.5rem 0 3rem;
+}
+
+.fafar-inscricao-form p {
+  text-align: left !important;
+}
+
+.fafar-inscricao-form * {
+  box-sizing: border-box;
+}
+
+.fafar-form-intro,
+.fafar-help {
+  color: var(--fafar-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 0 0 1.5rem;
+}
+
+.fafar-form-section {
+  border: 0;
+  border-top: 2px solid var(--fafar-primary);
+  margin: 2.25rem 0 0;
+  padding: 1.2rem 0 0;
+}
+
+.fafar-form-section legend {
+  color: var(--fafar-secondary);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  width: auto;
+}
+
+.fafar-form-grid,
+.fafar-conditional--grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fafar-form-grid .fafar-field--full,
+.fafar-form-grid .fafar-field--wide {
+  grid-column: 1 / -1;
+}
+
+.fafar-field,
+.fafar-file-field {
+  min-width: 0;
+}
+
+.fafar-field label,
+.fafar-file-field label,
+.fafar-label {
+  color: var(--fafar-secondary);
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 0.4rem;
+}
+
+.fafar-field label span[aria-hidden="true"],
+.fafar-file-field label span[aria-hidden="true"],
+.fafar-label span[aria-hidden="true"] {
+  color: #a51616;
+}
+
+.fafar-field input:not([type="radio"]):not([type="checkbox"]),
+.fafar-field select,
+.fafar-file-field input[type="file"] {
+  background: #fafafa;
+  border: 1px solid var(--fafar-border);
+  border-radius: 0;
+  color: var(--fafar-secondary);
+  display: block;
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+}
+
+.fafar-file-field input[type="file"] {
+  font-size: 0.9rem;
+  padding: 0.45rem;
+}
+
+.fafar-field input:focus,
+.fafar-field select:focus,
+.fafar-file-field input:focus {
+  border-color: var(--fafar-primary);
+  box-shadow: 0 0 0 2px rgba(242, 182, 0, 0.2);
+  outline: 0;
+}
+
+.fafar-inscricao-form ::placeholder {
+  color: #a4a4a4;
+  opacity: 1;
+}
+
+.fafar-field input:user-invalid,
+.fafar-field select:user-invalid,
+.fafar-file-field input:user-invalid,
+.fafar-field.is-invalid input,
+.fafar-field.is-invalid select,
+.fafar-file-field.is-invalid input {
+  border-color: #a51616;
+}
+
+.fafar-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 0.2rem;
+}
+
+.fafar-choice-list--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+.fafar-choice {
+  align-items: flex-start;
+  color: var(--fafar-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 400;
+  gap: 0.45rem;
+  line-height: 1.4;
+}
+
+.fafar-choice input {
+  accent-color: var(--fafar-primary);
+  flex: 0 0 auto;
+  margin: 0.22rem 0 0;
+}
+
+.fafar-file-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.fafar-file-grid > .fafar-file-field:only-child {
+  grid-column: 1 / -1;
+}
+
+.fafar-file-field small {
+  color: var(--fafar-muted);
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+.fafar-file-field a {
+  text-decoration: underline;
+}
+
+.fafar-upload-ui {
+  margin-top: 0.45rem;
+}
+
+.fafar-upload-status {
+  color: var(--fafar-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0 0 0.35rem;
+}
+
+.fafar-file-field[data-upload-state="uploading"] .fafar-upload-status {
+  color: #725600;
+}
+
+.fafar-file-field[data-upload-state="ready"] .fafar-upload-status {
+  color: #176b3a;
+}
+
+.fafar-file-field[data-upload-state="error"] .fafar-upload-status {
+  color: #a51616;
+}
+
+.fafar-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+}
+
+.fafar-inscricao-form .fafar-upload-action {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  color: var(--fafar-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+  min-height: 0;
+  padding: 0.1rem 0;
+}
+
+.fafar-inscricao-form .fafar-upload-action:hover,
+.fafar-inscricao-form .fafar-upload-action:focus {
+  background: transparent;
+  border-color: var(--fafar-primary);
+  color: #111;
+}
+
+.fafar-inscricao-form .fafar-upload-action:focus-visible {
+  outline: 2px solid rgba(242, 182, 0, 0.75);
+  outline-offset: 3px;
+}
+
+.fafar-form-errors {
+  background: #fff7f7;
+  border-left: 4px solid #a51616;
+  color: #7d1111;
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+}
+
+.fafar-form-errors p {
+  margin: 0 0 0.45rem;
+}
+
+.fafar-form-errors ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.fafar-form-errors li {
+  margin: 0.25rem 0;
+}
+
+.fafar-form-actions {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.fafar-submit {
+  background: var(--fafar-primary);
+  border: 2px solid var(--fafar-primary);
+  border-radius: 0;
+  color: var(--fafar-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  min-height: 2.8rem;
+  padding: 0.55rem 1.5rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.fafar-submit:hover,
+.fafar-submit:focus {
+  background: var(--fafar-secondary);
+  border-color: var(--fafar-secondary);
+  color: var(--fafar-primary);
+}
+
+.fafar-submit:disabled,
+.fafar-submit:disabled:hover {
+  background: #e7e7e7;
+  border-color: #cfcfcf;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.fafar-submit:focus-visible {
+  outline: 3px solid rgba(242, 182, 0, 0.75);
+  outline-offset: 2px;
+}
+
+.fafar-form-status {
+  color: var(--fafar-secondary);
+  flex: 1 1 20rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  margin: 0.55rem 0 0;
+}
+
+.fafar-form-status.is-error {
+  color: #a51616;
+}
+
+.fafar-form-status.is-success {
+  color: #176b3a;
+}
+
+.fafar-registration-availability {
+  border-left: 4px solid #F2B600;
+  margin: 1.5rem 0 3rem;
+  padding: 1rem 1.25rem;
+}
+
+.fafar-registration-availability h2 {
+  color: #404040;
+  font-size: 1.35rem;
+  margin: 0 0 0.5rem;
+}
+
+.fafar-registration-availability p {
+  color: #555;
+  margin: 0;
+  text-align: left !important;
+}
+
+.fafar-registration-availability.is-closed {
+  border-left-color: #777;
+}
+
+.fafar-inscricao-form [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .fafar-form-section {
+    padding: 1rem 0 0;
+  }
+
+  .fafar-form-grid,
+  .fafar-conditional--grid,
+  .fafar-file-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fafar-form-grid .fafar-field--full,
+  .fafar-form-grid .fafar-field--wide,
+  .fafar-file-grid > .fafar-file-field:only-child {
+    grid-column: auto;
+  }
+}

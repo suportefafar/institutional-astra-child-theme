@@ -1,0 +1,343 @@
+/* Lista de candidatos PPGCF. */
+.fafar-candidatos-page-content {
+  --fafar-primary: #F2B600;
+  --fafar-secondary: #404040;
+  color: var(--fafar-secondary);
+}
+
+.fafar-candidatos-page-content p {
+  text-align: left !important;
+}
+
+.fafar-candidatos-intro {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.fafar-schedule-section {
+  border-top: 2px solid var(--fafar-primary);
+  margin: 0 0 2rem;
+  padding-top: 1.1rem;
+}
+
+.fafar-schedule-section > h2 {
+  color: var(--fafar-secondary);
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+
+.fafar-schedule-section > p {
+  color: #666;
+  margin: 0 0 1rem;
+}
+
+.fafar-schedule-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fafar-schedule-card {
+  border: 1px solid #d5d5d5;
+  margin: 0;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.fafar-schedule-card legend {
+  color: var(--fafar-secondary);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0 0.35rem;
+}
+
+.fafar-schedule-status {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 0.9rem;
+}
+
+.fafar-schedule-status a {
+  color: var(--fafar-secondary);
+  text-decoration: underline;
+}
+
+.fafar-schedule-status strong.is-open,
+.fafar-schedule-notice.is-success {
+  color: #176b3a;
+}
+
+.fafar-schedule-status strong.is-upcoming,
+.fafar-schedule-status strong.is-scheduled {
+  color: #8a5d00;
+}
+
+.fafar-schedule-status strong.is-closed,
+.fafar-schedule-status strong.is-not_configured {
+  color: #666;
+}
+
+.fafar-schedule-fields {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fafar-schedule-fields label {
+  color: var(--fafar-secondary);
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.fafar-schedule-fields input {
+  background: #fafafa;
+  border: 1px solid #bdbdbd;
+  color: var(--fafar-secondary);
+  font: inherit;
+  min-height: 2.65rem;
+  padding: 0.45rem 0.55rem;
+  width: 100%;
+}
+
+.fafar-schedule-fields input:focus {
+  border-color: var(--fafar-primary);
+  box-shadow: 0 0 0 2px rgba(242, 182, 0, 0.2);
+  outline: 0;
+}
+
+.fafar-schedule-submit {
+  background: var(--fafar-primary);
+  border: 2px solid var(--fafar-primary);
+  color: var(--fafar-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  margin-top: 1rem;
+  min-height: 2.7rem;
+  padding: 0.5rem 1.25rem;
+}
+
+.fafar-schedule-submit:hover,
+.fafar-schedule-submit:focus {
+  background: var(--fafar-secondary);
+  border-color: var(--fafar-secondary);
+  color: var(--fafar-primary);
+}
+
+.fafar-schedule-notice {
+  border-left: 4px solid #999;
+  margin: 0 0 1rem;
+  padding: 0.45rem 0.75rem;
+}
+
+.fafar-schedule-notice.is-success {
+  border-left-color: #176b3a;
+}
+
+.fafar-schedule-notice.is-error {
+  border-left-color: #a51616;
+  color: #a51616;
+}
+
+.fafar-candidatos-count {
+  border-left: 4px solid var(--fafar-primary);
+  color: var(--fafar-secondary);
+  margin: 0 0 1rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.fafar-candidate-item {
+  border-top: 2px solid var(--fafar-primary);
+  margin: 0;
+}
+
+.fafar-candidate-item:last-child {
+  border-bottom: 1px solid #d5d5d5;
+}
+
+.fafar-candidate-item summary {
+  align-items: center;
+  cursor: pointer;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.7fr) minmax(12rem, 1.3fr) minmax(10rem, auto) auto;
+  list-style: none;
+  padding: 1rem 0.25rem;
+}
+
+.fafar-candidate-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.fafar-candidate-item summary::after {
+  color: var(--fafar-secondary);
+  content: '+';
+  flex: 0 0 auto;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.fafar-candidate-item[open] summary::after {
+  content: '−';
+}
+
+.fafar-candidate-item summary:focus-visible {
+  outline: 3px solid rgba(242, 182, 0, 0.6);
+  outline-offset: 2px;
+}
+
+.fafar-candidate-name {
+  color: var(--fafar-secondary);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.fafar-candidate-summary {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.fafar-candidate-received-summary {
+  color: #666;
+  font-size: 0.9rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.fafar-candidate-panel {
+  border-top: 1px solid #dedede;
+  padding: 1.25rem 0.25rem 1.5rem;
+}
+
+.fafar-candidate-section {
+  margin-bottom: 1.75rem;
+}
+
+.fafar-candidate-section h2 {
+  border-bottom: 1px solid var(--fafar-primary);
+  color: var(--fafar-secondary);
+  font-size: 1.05rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.45rem;
+}
+
+.fafar-candidate-data {
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(12rem, 0.8fr) minmax(0, 2fr);
+  margin: 0;
+}
+
+.fafar-candidate-data dt,
+.fafar-candidate-data dd {
+  border-bottom: 1px solid #ededed;
+  margin: 0;
+  padding: 0.55rem 0.25rem;
+}
+
+.fafar-candidate-data dt {
+  color: #555;
+  font-weight: 700;
+}
+
+.fafar-candidate-data dd {
+  overflow-wrap: anywhere;
+}
+
+.fafar-candidate-data a,
+.fafar-document-link {
+  color: var(--fafar-secondary);
+  text-decoration: underline;
+}
+
+.fafar-candidate-documents {
+  border-bottom: 1px solid #ededed;
+}
+
+.fafar-document-row {
+  align-items: baseline;
+  border-top: 1px solid #ededed;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 2fr) minmax(12rem, 1fr);
+  padding: 0.65rem 0.25rem;
+}
+
+.fafar-document-label {
+  color: #555;
+  font-weight: 600;
+}
+
+.fafar-document-link {
+  font-weight: 700;
+}
+
+.fafar-document-filename,
+.fafar-document-missing {
+  color: #666;
+  display: block;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.fafar-document-missing {
+  color: #999;
+  font-style: italic;
+}
+
+.fafar-candidatos-empty {
+  border-top: 2px solid var(--fafar-primary);
+  padding-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .fafar-schedule-grid,
+  .fafar-schedule-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .fafar-candidate-item summary {
+    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .fafar-candidate-summary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    text-align: left;
+  }
+
+  .fafar-candidate-received-summary {
+    font-size: 0.85rem;
+    grid-column: 1 / 2;
+    grid-row: 3;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .fafar-candidate-data {
+    display: block;
+  }
+
+  .fafar-candidate-data dt {
+    border-bottom: 0;
+    padding-bottom: 0.15rem;
+  }
+
+  .fafar-candidate-data dd {
+    padding-top: 0.15rem;
+  }
+
+  .fafar-document-row {
+    display: block;
+  }
+
+  .fafar-document-link,
+  .fafar-document-missing {
+    margin-top: 0.25rem;
+  }
+}

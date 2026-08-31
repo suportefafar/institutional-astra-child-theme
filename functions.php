@@ -25,6 +25,42 @@ function child_enqueue_styles() {
 add_action( 'wp_enqueue_scripts', 'child_enqueue_styles', 15 );
 
 
+/**
+ * Cria as páginas do PPGCF caso elas ainda não existam.
+ */
+function create_ppgcf_pages_if_missing() {
+	$ppgcf_user = get_user_by( 'login', 'ppgcf' );
+
+	// Não cria as páginas sem conseguir associá-las ao dono correto.
+	if ( ! $ppgcf_user ) {
+		return;
+	}
+
+	$pages = array(
+		'inscricao-ppgcf'       => 'Inscrição PPGCF',
+		'candidatos-ppgcf'      => 'Candidatos PPGCF',
+		'inscricao-ppgcf-teste' => 'Incrição PPGCF Teste',
+	);
+
+	foreach ( $pages as $slug => $title ) {
+		if ( get_page_by_path( $slug, OBJECT, 'page' ) ) {
+			continue;
+		}
+
+		wp_insert_post(
+			array(
+				'post_author' => $ppgcf_user->ID,
+				'post_name'   => $slug,
+				'post_title'  => $title,
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+	}
+}
+add_action( 'after_setup_theme', 'create_ppgcf_pages_if_missing' );
+
+
 
 // Carrega utils.php
 require_once get_stylesheet_directory() . '/utils.php';
@@ -42,6 +78,8 @@ require_once get_stylesheet_directory() . '/hooks.php';
 require_once get_stylesheet_directory() . '/e-book.php';
 // Carrega permissões personalizadas para o usuário 123
 require_once get_stylesheet_directory() . '/cenex-permissions.php';
+// Carrega o formulário e os endpoints de inscrição do PPGCF
+require_once get_stylesheet_directory() . '/ppgcf.php';
 
 /*
  * Changing "Read More" button text  
