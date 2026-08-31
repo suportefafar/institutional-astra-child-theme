@@ -394,7 +394,7 @@ function fafar_ppgcf_verify_registration_period( $context ) {
 	if ( 'upcoming' === $state['status'] || 'scheduled' === $state['status'] ) {
 		$message = 'O período de inscrições ainda não começou.';
 	} elseif ( 'closed' === $state['status'] ) {
-		$message = 'O período de inscrições foi encerrado.';
+		$message = 'O prazo para envio expirou. A inscrição não foi aceita porque o período de inscrições foi encerrado.';
 	}
 
 	fafar_ppgcf_send_json_error( $message, 403, '', 'registration_period_closed' );

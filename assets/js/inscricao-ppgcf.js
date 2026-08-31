@@ -592,7 +592,7 @@
         input.setCustomValidity(message);
         setFieldError(input, message);
         setUploadUi(input, 'error', message);
-        setStatus('Um ou mais arquivos não puderam ser enviados.', 'error');
+        setStatus(error && error.code === 'registration_period_closed' ? message : 'Um ou mais arquivos não puderam ser enviados.', 'error');
         updateSubmitAvailability();
       });
     }
@@ -774,7 +774,7 @@
         var message = friendlyRequestError(error, 'Não foi possível registrar a inscrição.');
         finishSubmitRequest();
         applySubmissionFieldError(error, message);
-        setStatus('A inscrição não pôde ser enviada.', 'error');
+        setStatus(error && error.code === 'registration_period_closed' ? message : 'A inscrição não pôde ser enviada.', 'error');
         updateSubmitAvailability();
       });
     }
