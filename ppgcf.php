@@ -18,6 +18,7 @@ add_action( 'wp_ajax_nopriv_ppgcf_upload_file', 'fafar_ppgcf_upload_file' );
 add_action( 'wp_ajax_ppgcf_submit_form', 'fafar_ppgcf_submit_form' );
 add_action( 'wp_ajax_nopriv_ppgcf_submit_form', 'fafar_ppgcf_submit_form' );
 add_action( 'fafar_ppgcf_cleanup_pending_uploads', 'fafar_ppgcf_cleanup_pending_uploads' );
+add_action( 'fafar_ppgcf_retry_email_notification', 'fafar_ppgcf_retry_email_notification', 10, 2 );
 add_action( 'admin_post_fafar_ppgcf_download_document', 'fafar_ppgcf_download_document' );
 add_action( 'admin_post_nopriv_fafar_ppgcf_download_document', 'fafar_ppgcf_download_document' );
 
@@ -355,6 +356,289 @@ function fafar_ppgcf_cleanup_pending_uploads() {
 function fafar_ppgcf_request_schedule_context() {
 	$context = isset( $_POST['schedule_context'] ) ? sanitize_key( wp_unslash( $_POST['schedule_context'] ) ) : 'production';
 	return in_array( $context, array( 'production', 'test' ), true ) ? $context : 'production';
+}
+
+/**
+ * Permite notificações somente quando o ambiente foi explicitamente
+ * configurado como produção.
+ *
+ * O WordPress assume "production" quando WP_ENVIRONMENT_TYPE não existe.
+ * Exigir também a constante evita que uma configuração ausente habilite o
+ * envio por engano em uma instalação local ou de desenvolvimento.
+ */
+function fafar_ppgcf_email_delivery_enabled() {
+	return defined( 'WP_ENVIRONMENT_TYPE' )
+		&& 'production' === WP_ENVIRONMENT_TYPE
+		&& 'production' === wp_get_environment_type();
+}
+
+/** Retorna a chave de metadados usada por cada uma das duas notificações. */
+function fafar_ppgcf_email_notification_meta_key( $notification_type ) {
+	$keys = array(
+		'candidate'   => '_ppgcf_hermes_candidate_notification',
+		'secretariat' => '_ppgcf_hermes_secretariat_notification',
+	);
+
+	return isset( $keys[ $notification_type ] ) ? $keys[ $notification_type ] : '';
+}
+
+/** Monta uma linha segura da tabela de resumo usada nos e-mails. */
+function fafar_ppgcf_email_summary_row( $label, $value ) {
+	return sprintf(
+		'<tr><th scope="row" style="padding:8px 12px;text-align:left;border:1px solid #dcdcde;background:#f6f7f7;">%1$s</th><td style="padding:8px 12px;border:1px solid #dcdcde;">%2$s</td></tr>',
+		esc_html( $label ),
+		esc_html( $value )
+	);
+}
+
+/** Envolve o conteúdo no HTML completo esperado pelo Hermes. */
+function fafar_ppgcf_email_document( $content ) {
+	return '<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"></head><body style="font-family:Arial,Helvetica,sans-serif;color:#1d2327;line-height:1.5;">' .
+		'<div style="max-width:680px;margin:0 auto;">' . $content . '</div></body></html>';
+}
+
+/** Limita e normaliza assuntos antes de enviá-los à API. */
+function fafar_ppgcf_email_subject( $subject ) {
+	return wp_html_excerpt( sanitize_text_field( $subject ), 240, '…' );
+}
+
+/**
+ * Cria o payload da confirmação do candidato ou da notificação da secretaria.
+ */
+function fafar_ppgcf_build_email_notification( $post_id, $notification_type ) {
+	$post_id = absint( $post_id );
+	$post    = get_post( $post_id );
+
+	if ( ! $post || 'ppgcf_candidato' !== $post->post_type ) {
+		return new WP_Error( 'invalid_candidate', 'A inscrição associada à notificação não existe.' );
+	}
+
+	$data = get_post_meta( $post_id, '_ppgcf_data', true );
+	if ( ! is_array( $data ) || empty( $data['NomeCompleto'] ) || empty( $data['Email'] ) || ! is_email( $data['Email'] ) ) {
+		return new WP_Error( 'invalid_candidate_data', 'Os dados da inscrição não permitem montar a notificação.' );
+	}
+
+	$context      = get_post_meta( $post_id, '_ppgcf_form_context', true );
+	$is_test      = 'test' === $context;
+	$subject_tag  = $is_test ? '[TESTE] ' : '';
+	$test_notice  = $is_test
+		? '<p style="padding:12px;border-left:4px solid #dba617;background:#fcf9e8;"><strong>Atenção:</strong> esta inscrição foi enviada pela página de teste do formulário.</p>'
+		: '';
+	$submitted_at = get_post_meta( $post_id, '_ppgcf_submitted_at', true );
+	$submitted_at = $submitted_at ? mysql2date( 'd/m/Y H:i', $submitted_at ) : get_the_date( 'd/m/Y H:i', $post_id );
+	$summary_rows  = fafar_ppgcf_email_summary_row( 'Protocolo', '#' . $post_id );
+	$summary_rows .= fafar_ppgcf_email_summary_row( 'Candidato(a)', $data['NomeCompleto'] );
+	$summary_rows .= fafar_ppgcf_email_summary_row( 'Data da inscrição', $submitted_at );
+	$summary_rows .= fafar_ppgcf_email_summary_row( 'Nível da vaga', $data['NivelDaVaga'] ?? '—' );
+	$summary_rows .= fafar_ppgcf_email_summary_row( 'Tipo de vaga', $data['TipoDaVaga'] ?? '—' );
+	$summary       = '<table role="presentation" style="border-collapse:collapse;width:100%;margin:20px 0;">' . $summary_rows . '</table>';
+
+	if ( 'candidate' === $notification_type ) {
+		$content  = '<h1 style="font-size:22px;">Confirmação de inscrição no PPGCF</h1>';
+		$content .= $test_notice;
+		$content .= '<p>Olá, <strong>' . esc_html( $data['NomeCompleto'] ) . '</strong>.</p>';
+		$content .= '<p>Sua inscrição no processo seletivo do Programa de Pós-Graduação em Ciências Farmacêuticas foi recebida com sucesso.</p>';
+		$content .= $summary;
+		$content .= '<p>Guarde esta mensagem como comprovante do recebimento da inscrição.</p>';
+		$content .= '<p>Atenciosamente,<br>Secretaria do Programa de Pós-Graduação em Ciências Farmacêuticas</p>';
+
+		return array(
+			'to_addresses' => array( $data['Email'] ),
+			'reply_to'     => 'colposfar@farmacia.ufmg.br',
+			'subject'      => fafar_ppgcf_email_subject( $subject_tag . 'Confirmação de inscrição — PPGCF — Protocolo #' . $post_id ),
+			'body_html'    => fafar_ppgcf_email_document( $content ),
+		);
+	}
+
+	if ( 'secretariat' === $notification_type ) {
+		$secretariat_rows  = $summary_rows;
+		$secretariat_rows .= fafar_ppgcf_email_summary_row( 'E-mail', $data['Email'] );
+		$secretariat_rows .= fafar_ppgcf_email_summary_row( 'Telefone', $data['Telefone'] ?? '—' );
+		$summary           = '<table role="presentation" style="border-collapse:collapse;width:100%;margin:20px 0;">' . $secretariat_rows . '</table>';
+		$content  = '<h1 style="font-size:22px;">Nova inscrição no PPGCF</h1>';
+		$content .= $test_notice;
+		$content .= '<p>Uma nova inscrição foi registrada pelo formulário do PPGCF.</p>';
+		$content .= $summary;
+		$content .= '<p><a href="' . esc_url( home_url( '/candidatos-ppgcf/' ) ) . '">Acessar a área protegida de candidatos</a></p>';
+
+		return array(
+			'to_addresses' => array( 'colposfar@farmacia.ufmg.br' ),
+			'reply_to'     => $data['Email'],
+			'subject'      => fafar_ppgcf_email_subject( $subject_tag . 'Nova inscrição PPGCF — #' . $post_id . ' — ' . $data['NomeCompleto'] ),
+			'body_html'    => fafar_ppgcf_email_document( $content ),
+		);
+	}
+
+	return new WP_Error( 'invalid_notification_type', 'Tipo de notificação inválido.' );
+}
+
+/** Enfileira uma mensagem diretamente na API interna do Hermes. */
+function fafar_ppgcf_send_hermes_message( $payload, $idempotency_key ) {
+	if ( ! fafar_ppgcf_email_delivery_enabled() ) {
+		return new WP_Error( 'email_delivery_disabled', 'O envio de e-mails está desabilitado neste ambiente.' );
+	}
+
+	$api_url   = defined( 'HERMES_API_URL' ) ? HERMES_API_URL : '';
+	$api_token = defined( 'HERMES_API_TOKEN' ) ? HERMES_API_TOKEN : '';
+
+	if ( ! is_string( $api_url ) || '' === trim( $api_url ) || ! is_string( $api_token ) || '' === trim( $api_token ) ) {
+		return new WP_Error( 'hermes_not_configured', 'O Hermes não está configurado para este site.' );
+	}
+
+	if ( ! wp_is_uuid( $idempotency_key, 4 ) ) {
+		return new WP_Error( 'invalid_idempotency_key', 'A chave de idempotência da notificação é inválida.' );
+	}
+
+	$response = wp_remote_post(
+		rtrim( $api_url, '/' ) . '/api/v1/messages',
+		array(
+			'headers'     => array(
+				'Authorization'   => 'Bearer ' . $api_token,
+				'Content-Type'    => 'application/json; charset=utf-8',
+				'Idempotency-Key' => $idempotency_key,
+			),
+			'body'        => wp_json_encode( $payload ),
+			'data_format' => 'body',
+			'timeout'     => 10,
+		)
+	);
+
+	if ( is_wp_error( $response ) ) {
+		return new WP_Error( 'hermes_connection_error', 'Não foi possível conectar ao Hermes.', $response->get_error_message() );
+	}
+
+	$response_code = wp_remote_retrieve_response_code( $response );
+	if ( 202 !== $response_code ) {
+		return new WP_Error( 'hermes_rejected_message', 'O Hermes recusou a mensagem.', array( 'status' => $response_code ) );
+	}
+
+	$response_data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+	return array(
+		'id'     => is_array( $response_data ) && ! empty( $response_data['id'] ) ? sanitize_text_field( $response_data['id'] ) : '',
+		'status' => 'accepted',
+	);
+}
+
+/** Agenda outra tentativa, com intervalos progressivos e no máximo cinco envios. */
+function fafar_ppgcf_schedule_email_retry( $post_id, $notification_type, $attempts ) {
+	$delays = array(
+		5 * MINUTE_IN_SECONDS,
+		15 * MINUTE_IN_SECONDS,
+		HOUR_IN_SECONDS,
+		4 * HOUR_IN_SECONDS,
+	);
+
+	if ( ! fafar_ppgcf_email_delivery_enabled() || $attempts >= 5 ) {
+		return;
+	}
+
+	$args = array( absint( $post_id ), $notification_type );
+	if ( wp_next_scheduled( 'fafar_ppgcf_retry_email_notification', $args ) ) {
+		return;
+	}
+
+	$delay = isset( $delays[ $attempts - 1 ] ) ? $delays[ $attempts - 1 ] : end( $delays );
+	wp_schedule_single_event( time() + $delay, 'fafar_ppgcf_retry_email_notification', $args );
+}
+
+/** Processa uma das notificações e persiste seu estado para auditoria e retry. */
+function fafar_ppgcf_process_email_notification( $post_id, $notification_type ) {
+	$meta_key = fafar_ppgcf_email_notification_meta_key( $notification_type );
+	if ( ! $meta_key ) {
+		return new WP_Error( 'invalid_notification_type', 'Tipo de notificação inválido.' );
+	}
+
+	$state = get_post_meta( $post_id, $meta_key, true );
+	$state = is_array( $state ) ? $state : array();
+	if ( 'accepted' === ( $state['status'] ?? '' ) ) {
+		return $state;
+	}
+
+	$idempotency_key = isset( $state['idempotency_key'] ) && wp_is_uuid( $state['idempotency_key'], 4 )
+		? $state['idempotency_key']
+		: wp_generate_uuid4();
+	$attempts        = isset( $state['attempts'] ) ? absint( $state['attempts'] ) + 1 : 1;
+	$state           = array_merge(
+		$state,
+		array(
+			'idempotency_key' => $idempotency_key,
+			'status'          => 'sending',
+			'attempts'        => $attempts,
+			'last_attempt_at' => current_time( 'mysql' ),
+		)
+	);
+
+	// A chave precisa estar persistida antes da chamada HTTP para tornar retries seguros.
+	if ( false === update_post_meta( $post_id, $meta_key, $state ) ) {
+		$result = new WP_Error( 'notification_state_error', 'Não foi possível preparar o controle da notificação.' );
+		error_log( sprintf( '[PPGCF Hermes] Could not persist notification state for application #%d (%s).', absint( $post_id ), $notification_type ) );
+		return $result;
+	}
+
+	$payload = fafar_ppgcf_build_email_notification( $post_id, $notification_type );
+	$result  = is_wp_error( $payload ) ? $payload : fafar_ppgcf_send_hermes_message( $payload, $idempotency_key );
+
+	if ( is_wp_error( $result ) ) {
+		$error_data                = $result->get_error_data();
+		$state['status']           = 'failed';
+		$state['last_error']       = substr( sanitize_text_field( $result->get_error_message() ), 0, 500 );
+		$state['last_error_code']  = sanitize_key( $result->get_error_code() );
+		$state['last_http_status'] = is_array( $error_data ) && isset( $error_data['status'] ) ? absint( $error_data['status'] ) : 0;
+		update_post_meta( $post_id, $meta_key, $state );
+		error_log( sprintf( '[PPGCF Hermes] Notification failed for application #%d (%s): %s', absint( $post_id ), $notification_type, $result->get_error_code() ) );
+		fafar_ppgcf_schedule_email_retry( $post_id, $notification_type, $attempts );
+		return $result;
+	}
+
+	$state['status']            = 'accepted';
+	$state['hermes_message_id'] = $result['id'];
+	$state['accepted_at']       = current_time( 'mysql' );
+	$state['last_error']        = '';
+	$state['last_error_code']   = '';
+	$state['last_http_status']  = 202;
+	if ( false === update_post_meta( $post_id, $meta_key, $state ) ) {
+		$result = new WP_Error( 'notification_state_error', 'O Hermes aceitou a mensagem, mas não foi possível atualizar o controle da notificação.' );
+		error_log( sprintf( '[PPGCF Hermes] Could not persist accepted state for application #%d (%s).', absint( $post_id ), $notification_type ) );
+		fafar_ppgcf_schedule_email_retry( $post_id, $notification_type, $attempts );
+		return $result;
+	}
+
+	return $state;
+}
+
+/** Callback das tentativas agendadas; o bloqueio por ambiente é revalidado. */
+function fafar_ppgcf_retry_email_notification( $post_id, $notification_type ) {
+	if ( ! fafar_ppgcf_email_delivery_enabled() ) {
+		return;
+	}
+
+	fafar_ppgcf_process_email_notification( absint( $post_id ), sanitize_key( $notification_type ) );
+}
+
+/** Dispara as duas mensagens ou registra que foram suprimidas fora de produção. */
+function fafar_ppgcf_dispatch_email_notifications( $post_id ) {
+	$notification_types = array( 'candidate', 'secretariat' );
+
+	if ( ! fafar_ppgcf_email_delivery_enabled() ) {
+		$environment = defined( 'WP_ENVIRONMENT_TYPE' ) ? wp_get_environment_type() : 'undefined';
+		foreach ( $notification_types as $notification_type ) {
+			update_post_meta(
+				$post_id,
+				fafar_ppgcf_email_notification_meta_key( $notification_type ),
+				array(
+					'status'      => 'suppressed_non_production',
+					'environment' => $environment,
+					'updated_at'  => current_time( 'mysql' ),
+				)
+			);
+		}
+		return;
+	}
+
+	foreach ( $notification_types as $notification_type ) {
+		fafar_ppgcf_process_email_notification( $post_id, $notification_type );
+	}
 }
 
 /** Envia uma resposta de erro consistente, opcionalmente ligada a um campo. */
@@ -716,6 +1000,10 @@ function fafar_ppgcf_submit_form() {
 	foreach ( $uploaded_files as $token ) {
 		delete_transient( 'fafar_ppgcf_upload_' . $token );
 	}
+
+	// A inscrição já está concluída; falhas de e-mail não devem apagá-la nem
+	// induzir o candidato a reenviar o formulário e criar uma duplicidade.
+	fafar_ppgcf_dispatch_email_notifications( $post_id );
 
 	wp_send_json_success(
 		array(
