@@ -194,8 +194,8 @@ get_header();
 
 							<div class="fafar-conditional fafar-file-grid" data-condition="doutorado" hidden>
 								<div class="fafar-file-field"><label for="ArquivoProjetoTese">Pré-projeto de tese <span aria-hidden="true">*</span></label><input id="ArquivoProjetoTese" name="ArquivoProjetoTese" type="file" accept=".pdf,application/pdf" data-max-size="8388608" data-required="true"></div>
-								<div class="fafar-file-field"><label for="ArquivoDiplomaMestrado">Cópia do diploma de mestrado, frente e verso em arquivo único, ou ata de defesa da dissertação de mestrado <span aria-hidden="true">*</span></label><input id="ArquivoDiplomaMestrado" name="ArquivoDiplomaMestrado" type="file" accept=".pdf,application/pdf" data-max-size="8388608" data-required="true"></div>
-								<div class="fafar-file-field"><label for="ArquivoHistoricoPosGraduacao">Histórico escolar do curso de pós-graduação <span aria-hidden="true">*</span></label><input id="ArquivoHistoricoPosGraduacao" name="ArquivoHistoricoPosGraduacao" type="file" accept=".pdf,application/pdf" data-max-size="8388608" data-required="true"></div>
+								<div class="fafar-file-field"><label for="ArquivoDiplomaMestrado">Cópia do diploma de mestrado, frente e verso em arquivo único, ou ata de defesa da dissertação de mestrado (opcional)</label><input id="ArquivoDiplomaMestrado" name="ArquivoDiplomaMestrado" type="file" accept=".pdf,application/pdf" data-max-size="8388608"></div>
+								<div class="fafar-file-field"><label for="ArquivoHistoricoPosGraduacao">Histórico escolar do curso de pós-graduação (opcional)</label><input id="ArquivoHistoricoPosGraduacao" name="ArquivoHistoricoPosGraduacao" type="file" accept=".pdf,application/pdf" data-max-size="8388608"></div>
 							</div>
 
 							<div class="fafar-conditional fafar-file-grid" data-condition="edital-regular" hidden>
@@ -215,7 +215,7 @@ get_header();
 							</div>
 
 							<div class="fafar-file-grid">
-								<div class="fafar-file-field"><label for="ArquivoExameLinguaInglesa">Comprovação de proficiência em língua inglesa <span aria-hidden="true">*</span></label><input id="ArquivoExameLinguaInglesa" name="ArquivoExameLinguaInglesa" type="file" accept=".pdf,application/pdf" data-max-size="8388608" required></div>
+								<div class="fafar-file-field"><label for="ArquivoExameLinguaInglesa">Comprovação de proficiência em língua inglesa (opcional)</label><input id="ArquivoExameLinguaInglesa" name="ArquivoExameLinguaInglesa" type="file" accept=".pdf,application/pdf" data-max-size="8388608"></div>
 							</div>
 						</fieldset>
 

@@ -166,11 +166,7 @@
         case 'doutorado':
           return level === 'Doutorado';
         case 'edital-regular':
-          return [
-            'Ampla concorrência',
-            'Estrangeiro',
-            'Reserva de vagas para negros'
-          ].indexOf(type) !== -1;
+          return type === 'Reserva de vagas para negros';
         case 'indigenas':
           return type === 'Reserva de vagas para indígenas';
         case 'pcds':

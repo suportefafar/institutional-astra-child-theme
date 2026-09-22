@@ -841,7 +841,6 @@ function fafar_ppgcf_required_files( $data ) {
 		'ArquivoComprovanteResidencia',
 		'ArquivoTabelaPontuacaoCurriculo',
 		'ArquivoDiplomaGraduacao',
-		'ArquivoExameLinguaInglesa',
 	);
 
 	$type  = isset( $data['TipoDaVaga'] ) ? $data['TipoDaVaga'] : '';
@@ -858,12 +857,10 @@ function fafar_ppgcf_required_files( $data ) {
 	}
 
 	if ( 'Doutorado' === $level ) {
-		$files = array_merge( $files, array( 'ArquivoProjetoTese', 'ArquivoDiplomaMestrado', 'ArquivoHistoricoPosGraduacao' ) );
+		$files[] = 'ArquivoProjetoTese';
 	}
 
 	$vacancy_files = array(
-		'Ampla concorrência'               => array( 'ArquivoAutodeclaracaoEtnicoRacial' ),
-		'Estrangeiro'                      => array( 'ArquivoAutodeclaracaoEtnicoRacial' ),
 		'Reserva de vagas para negros'     => array( 'ArquivoAutodeclaracaoEtnicoRacial' ),
 		'Reserva de vagas para indígenas'  => array( 'ArquivoAutorreconhecimentoIndigena', 'ArquivoDeclaracaoLiderancaIndigena', 'ArquivoDeclaracaoFunai' ),
 		'Reserva de vagas para pessoas com deficiência' => array( 'ArquivoAutodeclaracaoDeficiente', 'ArquivoRelatorioMedico', 'ArquivoCondicoesEspeciaisProva' ),
