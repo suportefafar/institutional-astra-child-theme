@@ -45,9 +45,6 @@ function site_fafar_before_send_mail_handler( $form_data ) {
         ];
     }
 
-    // Log the API response
-    $response_body = wp_remote_retrieve_body( $response );
-    error_log( 'API Response: ' . $response_body ); 
 
     // Return true to indicate success
     return $form_data;
@@ -103,10 +100,9 @@ function hermes_custom_wp_mail( $return, $atts ) {
     }
 
     $response_code = wp_remote_retrieve_response_code( $response );
-    $response_body = wp_remote_retrieve_body( $response );
 
     if ( $response_code !== 202 && $response_code !== 200 ) {
-        error_log( '[Hermes] API returned HTTP ' . $response_code . ': ' . $response_body );
+        error_log( '[Hermes] API returned HTTP ' . $response_code );
         return false;
     }
 

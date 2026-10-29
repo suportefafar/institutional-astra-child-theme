@@ -468,17 +468,18 @@ function validar_ementas_content_handler()
 
     global $wpdb;
 
-    if (isset($_GET["codigo"])) {
+    if (isset($_GET["codigo"]) && is_string($_GET["codigo"])) {
+        $codigo = sanitize_text_field(wp_unslash($_GET["codigo"]));
 
         $result = $wpdb->get_row(
             $wpdb->prepare(
             "SELECT * FROM ementas a JOIN tipo_ementas b ON a.versao = b.id WHERE cod_ementa = %s",
-            $_GET["codigo"]));
+            $codigo));
 
         if (!$result) {
 
             echo "<div id='alert-to-collapse' class='alert alert-danger' role='alert'>
-                        Código de ementa inválido! ('" . $_GET["codigo"] . "')
+                        Código de ementa inválido! ('" . esc_html($codigo) . "')
                     </div>";
 
         }
@@ -489,23 +490,23 @@ function validar_ementas_content_handler()
                             <tbody>
                                 <tr>
                                     <td>Código</td>
-                                    <th scope='row'>" . $result->cod_disciplina . "</th>
+                                    <th scope='row'>" . esc_html($result->cod_disciplina) . "</th>
                                 </tr>
                                 <tr>
                                     <td>Nome</td>
-                                    <th scope='row'>" . $result->nome . "</th>
+                                    <th scope='row'>" . esc_html($result->nome) . "</th>
                                 </tr>
                                 <tr>
                                     <td>Subnome</td>
-                                    <th scope='row'>" . $result->subnome . "</th>
+                                    <th scope='row'>" . esc_html($result->subnome) . "</th>
                                 </tr>
                                 <tr>
                                     <td>Tipo de Ementa</td>
-                                    <th scope='row'>" . $result->descricao . "</th>
+                                    <th scope='row'>" . esc_html($result->descricao) . "</th>
                                 </tr>
                                 <tr>
                                     <td>Link</td>
-                                    <th scope='row'><a href='" . $result->arquivo_ementa . "' target='_blank'>" . $result->arquivo_ementa . "</a></th>
+                                    <th scope='row'><a href='" . esc_url($result->arquivo_ementa) . "' target='_blank' rel='noopener noreferrer'>" . esc_html($result->arquivo_ementa) . "</a></th>
                                 </tr>               
                             </tbody>
                         </table>
