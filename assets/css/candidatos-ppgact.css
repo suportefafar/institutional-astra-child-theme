@@ -73,8 +73,36 @@
 }
 
 .fafar-schedule-status strong.is-closed,
-.fafar-schedule-status strong.is-not_configured {
+.fafar-schedule-status strong.is-not_configured,
+.fafar-schedule-status strong.is-disabled {
   color: #666;
+}
+
+.fafar-schedule-level-period {
+  border: 1px solid #ddd;
+  margin: 1rem 0 0;
+  padding: 0.85rem;
+  min-width: 0;
+}
+
+.fafar-schedule-card .fafar-schedule-level-period legend {
+  font-size: 1rem;
+  padding: 0 0.25rem;
+}
+
+.fafar-schedule-level-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.fafar-schedule-level-toggle input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--fafar-primary);
 }
 
 .fafar-schedule-fields {

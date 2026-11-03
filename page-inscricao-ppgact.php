@@ -80,7 +80,9 @@ get_header();
 							<div class="fafar-field">
 								<span class="fafar-label">Nível da vaga <span aria-hidden="true">*</span></span>
 								<div class="fafar-choice-list fafar-choice-list--inline">
-									<label class="fafar-choice"><input type="radio" name="NivelDaVaga" value="Doutorado" checked required> <span>Doutorado</span></label>
+									<?php foreach ( $fafar_ppgact_schedule_state['open_levels'] as $level_index => $level ) : ?>
+										<label class="fafar-choice"><input type="radio" name="NivelDaVaga" value="<?php echo esc_attr( $level ); ?>" <?php checked( 0 === $level_index ); ?> required> <span><?php echo esc_html( $level ); ?></span></label>
+									<?php endforeach; ?>
 								</div>
 							</div>
 
@@ -245,7 +247,10 @@ get_header();
 					</form>
 					<?php else : ?>
 						<section class="fafar-registration-availability is-<?php echo esc_attr( $fafar_ppgact_schedule_state['status'] ); ?>" aria-live="polite">
-							<?php if ( 'upcoming' === $fafar_ppgact_schedule_state['status'] ) : ?>
+							<?php if ( 'disabled' === $fafar_ppgact_schedule_state['status'] ) : ?>
+								<h2>Inscrições indisponíveis</h2>
+								<p>Não há vagas abertas para mestrado ou doutorado neste momento.</p>
+							<?php elseif ( 'upcoming' === $fafar_ppgact_schedule_state['status'] ) : ?>
 								<h2>Em breve</h2>
 								<p>Em breve as inscrições irão começar. O formulário estará disponível a partir de <time datetime="<?php echo esc_attr( $fafar_ppgact_schedule_state['opens_at']->format( DATE_ATOM ) ); ?>"><?php echo esc_html( wp_date( 'd/m/Y \à\s H:i', $fafar_ppgact_schedule_state['opens_at']->getTimestamp(), wp_timezone() ) ); ?></time>.</p>
 							<?php elseif ( 'scheduled' === $fafar_ppgact_schedule_state['status'] ) : ?>

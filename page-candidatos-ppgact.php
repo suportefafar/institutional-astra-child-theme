@@ -21,7 +21,8 @@ $schedule_states       = array(
 	'test'       => fafar_ppgact_registration_schedule_state( 'test' ),
 );
 $schedule_labels       = array(
-	'not_configured' => 'Desativado',
+	'disabled'       => 'Desativado',
+	'not_configured' => 'Sem período configurado',
 	'scheduled'      => 'Agendado',
 	'upcoming'       => 'Abre em breve',
 	'open'           => 'Ativo agora',
@@ -123,11 +124,11 @@ get_header();
 					<p class="fafar-candidatos-intro">Esta área é restrita a usuários autenticados e apresenta as inscrições recebidas pelo formulário do PPGACT.</p>
 
 					<section class="fafar-schedule-section" aria-labelledby="fafar-schedule-title">
-						<h2 id="fafar-schedule-title">Períodos dos formulários de inscrição</h2>
-						<p>Defina quando cada formulário ficará disponível. As datas e os horários usam o fuso <strong><?php echo esc_html( wp_timezone_string() ); ?></strong>. Deixe os dois campos de um período vazios para desativá-lo.</p>
+						<h2 id="fafar-schedule-title">Períodos e níveis dos formulários de inscrição</h2>
+						<p>Habilite mestrado e/ou doutorado e defina a abertura e o fechamento de cada nível. Os prazos são independentes e podem se sobrepor. As datas e os horários usam o fuso <strong><?php echo esc_html( wp_timezone_string() ); ?></strong>. O nível só recebe inscrições se estiver habilitado e dentro do próprio prazo. Deixe as datas vazias ou desmarque o nível para impedir novas inscrições.</p>
 
 						<?php if ( true === $schedule_save_result ) : ?>
-							<p class="fafar-schedule-notice is-success" role="status">Períodos atualizados com sucesso.</p>
+							<p class="fafar-schedule-notice is-success" role="status">Períodos e níveis atualizados com sucesso.</p>
 						<?php elseif ( is_wp_error( $schedule_save_result ) ) : ?>
 							<p class="fafar-schedule-notice is-error" role="alert"><?php echo esc_html( $schedule_save_result->get_error_message() ); ?></p>
 						<?php endif; ?>
@@ -136,6 +137,7 @@ get_header();
 							<form class="fafar-schedule-form" method="post" action="">
 								<?php wp_nonce_field( 'fafar_ppgact_save_schedules', 'fafar_ppgact_schedule_nonce' ); ?>
 								<input type="hidden" name="fafar_ppgact_schedule_action" value="save">
+								<input type="hidden" name="fafar_ppgact_schedule_format" value="per_level">
 
 								<div class="fafar-schedule-grid">
 									<?php
@@ -154,24 +156,36 @@ get_header();
 										<fieldset class="fafar-schedule-card">
 											<legend><?php echo esc_html( $section['title'] ); ?></legend>
 											<p class="fafar-schedule-status">Situação: <strong class="is-<?php echo esc_attr( $schedule_states[ $context ]['status'] ); ?>"><?php echo esc_html( $schedule_labels[ $schedule_states[ $context ]['status'] ] ); ?></strong> · <a href="<?php echo esc_url( $section['url'] ); ?>" target="_blank" rel="noopener noreferrer">abrir página</a></p>
-											<div class="fafar-schedule-fields">
-												<div>
-													<label for="fafar-<?php echo esc_attr( $context ); ?>-opens-at">Abertura</label>
-													<input id="fafar-<?php echo esc_attr( $context ); ?>-opens-at" name="fafar_ppgact_schedule[<?php echo esc_attr( $context ); ?>][opens_at]" type="datetime-local" step="60" value="<?php echo esc_attr( $schedules[ $context ]['opens_at'] ); ?>">
-												</div>
-												<div>
-													<label for="fafar-<?php echo esc_attr( $context ); ?>-closes-at">Fechamento</label>
-													<input id="fafar-<?php echo esc_attr( $context ); ?>-closes-at" name="fafar_ppgact_schedule[<?php echo esc_attr( $context ); ?>][closes_at]" type="datetime-local" step="60" value="<?php echo esc_attr( $schedules[ $context ]['closes_at'] ); ?>">
-												</div>
-											</div>
+											<?php foreach ( fafar_ppgact_candidate_levels() as $level ) : ?>
+												<?php
+												$level_slug = sanitize_key( $level );
+												$period = $schedules[ $context ][ $level ];
+												$level_state = $schedule_states[ $context ]['levels'][ $level ];
+												?>
+												<fieldset class="fafar-schedule-level-period">
+													<legend><?php echo esc_html( $level ); ?></legend>
+													<label class="fafar-schedule-level-toggle"><input type="checkbox" name="fafar_ppgact_schedule[<?php echo esc_attr( $context ); ?>][<?php echo esc_attr( $level ); ?>][enabled]" value="1" <?php checked( $period['enabled'] ); ?>> Habilitar inscrições para <?php echo esc_html( $level ); ?></label>
+													<p class="fafar-schedule-status">Situação: <strong class="is-<?php echo esc_attr( $level_state['status'] ); ?>"><?php echo esc_html( $schedule_labels[ $level_state['status'] ] ); ?></strong></p>
+													<div class="fafar-schedule-fields">
+														<div>
+															<label for="fafar-<?php echo esc_attr( $context . '-' . $level_slug ); ?>-opens-at">Abertura de <?php echo esc_html( $level ); ?></label>
+															<input id="fafar-<?php echo esc_attr( $context . '-' . $level_slug ); ?>-opens-at" name="fafar_ppgact_schedule[<?php echo esc_attr( $context ); ?>][<?php echo esc_attr( $level ); ?>][opens_at]" type="datetime-local" step="60" value="<?php echo esc_attr( $period['opens_at'] ); ?>">
+														</div>
+														<div>
+															<label for="fafar-<?php echo esc_attr( $context . '-' . $level_slug ); ?>-closes-at">Fechamento de <?php echo esc_html( $level ); ?></label>
+															<input id="fafar-<?php echo esc_attr( $context . '-' . $level_slug ); ?>-closes-at" name="fafar_ppgact_schedule[<?php echo esc_attr( $context ); ?>][<?php echo esc_attr( $level ); ?>][closes_at]" type="datetime-local" step="60" value="<?php echo esc_attr( $period['closes_at'] ); ?>">
+														</div>
+													</div>
+												</fieldset>
+											<?php endforeach; ?>
 										</fieldset>
 									<?php endforeach; ?>
 								</div>
 
-								<button class="fafar-schedule-submit" type="submit">Salvar períodos</button>
+								<button class="fafar-schedule-submit" type="submit">Salvar configurações</button>
 							</form>
 						<?php else : ?>
-							<p class="fafar-schedule-notice">Sua conta pode consultar as inscrições, mas não pode alterar os períodos.</p>
+							<p class="fafar-schedule-notice">Sua conta pode consultar as inscrições, mas não pode alterar os períodos e níveis.</p>
 						<?php endif; ?>
 					</section>
 
