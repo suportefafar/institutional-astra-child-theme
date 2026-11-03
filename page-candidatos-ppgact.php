@@ -37,6 +37,17 @@ wp_enqueue_style(
 	file_exists( $candidates_style_path ) ? filemtime( $candidates_style_path ) : '1.0.0'
 );
 
+if ( fafar_ppgact_can_manage_schedules() ) {
+	$schedule_script_path = get_stylesheet_directory() . '/assets/js/candidatos-ppgact.js';
+	wp_enqueue_script(
+		'fafar-candidatos-ppgact',
+		get_stylesheet_directory_uri() . '/assets/js/candidatos-ppgact.js',
+		array(),
+		file_exists( $schedule_script_path ) ? filemtime( $schedule_script_path ) : '1.0.0',
+		true
+	);
+}
+
 $candidates = new WP_Query(
 	array(
 		'post_type'      => 'ppgact_candidato',
@@ -153,8 +164,9 @@ get_header();
 									);
 									?>
 									<?php foreach ( $schedule_sections as $context => $section ) : ?>
-										<fieldset class="fafar-schedule-card">
+										<fieldset class="fafar-schedule-card" data-schedule-context="<?php echo esc_attr( $context ); ?>">
 											<legend><?php echo esc_html( $section['title'] ); ?></legend>
+											<button class="fafar-schedule-copy" type="button" data-copy-from="<?php echo esc_attr( $context ); ?>" data-copy-to="<?php echo 'production' === $context ? 'test' : 'production'; ?>" hidden><?php echo 'production' === $context ? 'Copiar para o formulário de testes' : 'Copiar para o formulário principal'; ?></button>
 											<p class="fafar-schedule-status">Situação: <strong class="is-<?php echo esc_attr( $schedule_states[ $context ]['status'] ); ?>"><?php echo esc_html( $schedule_labels[ $schedule_states[ $context ]['status'] ] ); ?></strong> · <a href="<?php echo esc_url( $section['url'] ); ?>" target="_blank" rel="noopener noreferrer">abrir página</a></p>
 											<?php foreach ( fafar_ppgact_candidate_levels() as $level ) : ?>
 												<?php
@@ -182,6 +194,7 @@ get_header();
 									<?php endforeach; ?>
 								</div>
 
+								<p class="fafar-schedule-copy-status" role="status" aria-live="polite" hidden></p>
 								<button class="fafar-schedule-submit" type="submit">Salvar configurações</button>
 							</form>
 						<?php else : ?>

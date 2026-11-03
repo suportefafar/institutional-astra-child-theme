@@ -51,6 +51,30 @@
   padding: 0 0.35rem;
 }
 
+.fafar-schedule-copy {
+  background: transparent;
+  border: 1px solid #999;
+  color: var(--fafar-secondary);
+  cursor: pointer;
+  font: inherit;
+  margin-bottom: 0.9rem;
+  min-height: 2.7rem;
+  padding: 0.45rem 0.75rem;
+  width: 100%;
+}
+
+.fafar-schedule-copy:hover,
+.fafar-schedule-copy:focus-visible {
+  background: #f5f5f5;
+  border-color: var(--fafar-secondary);
+}
+
+.fafar-schedule-copy-status {
+  border-left: 4px solid var(--fafar-primary);
+  margin: 1rem 0 0;
+  padding: 0.5rem 0.75rem;
+}
+
 .fafar-schedule-status {
   color: #666;
   font-size: 0.9rem;
