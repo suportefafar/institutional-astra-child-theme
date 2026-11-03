@@ -38,6 +38,7 @@ function settings_request($value) {
 }
 require dirname(__DIR__) . '/ppgact.php';
 require dirname(__DIR__) . '/ppgcf.php';
+$other_program_schedules=fafar_ppgcf_registration_schedules();
 $key='fafar_ppgact_registration_schedules';
 $GLOBALS['options'][$key] = ['production'=>['opens_at'=>'2026-11-01T08:00','closes_at'=>'2026-11-10T18:00'], 'test'=>['opens_at'=>'','closes_at'=>'']];
 $migrated=fafar_ppgact_registration_schedules();
@@ -113,7 +114,7 @@ settings_request(saved());unset($_POST['fafar_ppgact_schedule_format']);
 check(is_wp_error(fafar_ppgact_save_registration_schedules_from_request()) && $GLOBALS['options'][$key]===$before,'Formulário antigo sobrescreveu os novos prazos.');
 settings_request(saved(false,false));
 check(fafar_ppgact_save_registration_schedules_from_request()===true && fafar_ppgact_registration_schedule_state('production')['status']==='disabled','Desmarcar ambos não desativou.');
-check(fafar_ppgcf_registration_schedules()['production']===['opens_at'=>'','closes_at'=>''],'PPGCF foi alterado.');
+check(fafar_ppgcf_registration_schedules()===$other_program_schedules,'PPGCF foi alterado.');
 echo "PASS: quatro períodos salvos atomicamente; permissões, nonce, datas inválidas e formulário antigo verificados.\n";
 // Renderização dos templates com banco e rede simulados.
 function get_stylesheet_directory() { return dirname(__DIR__); }

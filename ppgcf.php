@@ -51,29 +51,34 @@ function fafar_ppgcf_maybe_create_test_page() {
 	}
 }
 
-/** Retorna os dois períodos configuráveis e seus valores padrão. */
-function fafar_ppgcf_registration_schedules() {
-	$defaults = array(
-		'production' => array(
-			'opens_at'  => '',
-			'closes_at' => '',
-		),
-		'test'       => array(
-			'opens_at'  => '',
-			'closes_at' => '',
-		),
-	);
-	$saved    = get_option( 'fafar_ppgcf_registration_schedules', array() );
-	$saved    = is_array( $saved ) ? $saved : array();
+/** Níveis de vaga oferecidos pelo programa. */
+function fafar_ppgcf_candidate_levels() {
+	return array( 'Mestrado', 'Doutorado' );
+}
 
-	foreach ( $defaults as $context => $schedule ) {
-		if ( isset( $saved[ $context ] ) && is_array( $saved[ $context ] ) ) {
-			$defaults[ $context ]['opens_at']  = isset( $saved[ $context ]['opens_at'] ) && is_string( $saved[ $context ]['opens_at'] ) ? $saved[ $context ]['opens_at'] : '';
-			$defaults[ $context ]['closes_at'] = isset( $saved[ $context ]['closes_at'] ) && is_string( $saved[ $context ]['closes_at'] ) ? $saved[ $context ]['closes_at'] : '';
+/** Retorna os períodos independentes de cada nível e formulário. */
+function fafar_ppgcf_registration_schedules() {
+	$saved = get_option( 'fafar_ppgcf_registration_schedules', array() );
+	$saved = is_array( $saved ) ? $saved : array();
+	$schedules = array();
+
+	foreach ( array( 'production', 'test' ) as $context ) {
+		$values = isset( $saved[ $context ] ) && is_array( $saved[ $context ] ) ? $saved[ $context ] : array();
+		$per_level = isset( $values['Mestrado'] ) || isset( $values['Doutorado'] );
+		$legacy_levels = isset( $values['levels'] ) && is_array( $values['levels'] ) ? $values['levels'] : array( 'Doutorado' );
+		foreach ( fafar_ppgcf_candidate_levels() as $level ) {
+			// O prazo único anterior continua valendo para o doutorado, sem abrir mestrado.
+			$period = $per_level ? ( $values[ $level ] ?? array() ) : $values;
+			$period = is_array( $period ) ? $period : array();
+			$schedules[ $context ][ $level ] = array(
+				'enabled'   => $per_level ? ! empty( $period['enabled'] ) : in_array( $level, $legacy_levels, true ),
+				'opens_at'  => isset( $period['opens_at'] ) && is_string( $period['opens_at'] ) ? $period['opens_at'] : '',
+				'closes_at' => isset( $period['closes_at'] ) && is_string( $period['closes_at'] ) ? $period['closes_at'] : '',
+			);
 		}
 	}
 
-	return $defaults;
+	return $schedules;
 }
 
 /** Converte o valor de datetime-local usando o fuso horário do WordPress. */
@@ -82,7 +87,7 @@ function fafar_ppgcf_parse_schedule_datetime( $value ) {
 		return false;
 	}
 
-	$date   = DateTimeImmutable::createFromFormat( '!Y-m-d\TH:i', $value, wp_timezone() );
+	$date = DateTimeImmutable::createFromFormat( '!Y-m-d\TH:i', $value, wp_timezone() );
 	$errors = DateTimeImmutable::getLastErrors();
 	if ( ! $date || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $date->format( 'Y-m-d\TH:i' ) !== $value ) {
 		return false;
@@ -91,17 +96,17 @@ function fafar_ppgcf_parse_schedule_datetime( $value ) {
 	return $date;
 }
 
-/** Informa se o período está aberto, próximo, futuro, encerrado ou ausente. */
-function fafar_ppgcf_registration_schedule_state( $context, $now = null ) {
-	$context   = in_array( $context, array( 'production', 'test' ), true ) ? $context : 'production';
+/** Calcula a disponibilidade de um nível específico. */
+function fafar_ppgcf_registration_level_state( $context, $level, $now = null ) {
+	$context = in_array( $context, array( 'production', 'test' ), true ) ? $context : 'production';
 	$schedules = fafar_ppgcf_registration_schedules();
-	$schedule  = $schedules[ $context ];
-	$opens_at  = fafar_ppgcf_parse_schedule_datetime( $schedule['opens_at'] );
-	$closes_at = fafar_ppgcf_parse_schedule_datetime( $schedule['closes_at'] );
-	$now       = $now instanceof DateTimeImmutable ? $now : current_datetime();
-	$status    = 'not_configured';
+	$period = $schedules[ $context ][ $level ] ?? array( 'enabled' => false, 'opens_at' => '', 'closes_at' => '' );
+	$opens_at = fafar_ppgcf_parse_schedule_datetime( $period['opens_at'] );
+	$closes_at = fafar_ppgcf_parse_schedule_datetime( $period['closes_at'] );
+	$now = $now instanceof DateTimeImmutable ? $now : current_datetime();
+	$status = $period['enabled'] ? 'not_configured' : 'disabled';
 
-	if ( $opens_at && $closes_at && $opens_at < $closes_at ) {
+	if ( $period['enabled'] && $opens_at && $closes_at && $opens_at < $closes_at ) {
 		if ( $now >= $closes_at ) {
 			$status = 'closed';
 		} elseif ( $now >= $opens_at ) {
@@ -115,11 +120,44 @@ function fafar_ppgcf_registration_schedule_state( $context, $now = null ) {
 
 	return array(
 		'context'   => $context,
+		'level'     => $level,
 		'status'    => $status,
 		'opens_at'  => $opens_at,
 		'closes_at' => $closes_at,
-		'values'    => $schedule,
+		'values'    => $period,
 	);
+}
+
+/** O formulário abre se ao menos um nível estiver dentro do próprio prazo. */
+function fafar_ppgcf_registration_schedule_state( $context, $now = null ) {
+	$now = $now instanceof DateTimeImmutable ? $now : current_datetime();
+	$levels = array();
+	$open_levels = array();
+	$next = null;
+	$last = null;
+	$unconfigured = null;
+	foreach ( fafar_ppgcf_candidate_levels() as $level ) {
+		$state = fafar_ppgcf_registration_level_state( $context, $level, $now );
+		$levels[ $level ] = $state;
+		if ( 'open' === $state['status'] ) {
+			$open_levels[] = $level;
+		} elseif ( in_array( $state['status'], array( 'upcoming', 'scheduled' ), true ) ) {
+			if ( ! $next || $state['opens_at'] < $next['opens_at'] ) {
+				$next = $state;
+			}
+		} elseif ( 'closed' === $state['status'] ) {
+			if ( ! $last || $state['closes_at'] > $last['closes_at'] ) {
+				$last = $state;
+			}
+		} elseif ( 'not_configured' === $state['status'] ) {
+			$unconfigured = $state;
+		}
+	}
+
+	$result = $open_levels ? $levels[ $open_levels[0] ] : ( $next ?? $last ?? $unconfigured ?? reset( $levels ) );
+	$result['levels'] = $levels;
+	$result['open_levels'] = $open_levels;
+	return $result;
 }
 
 /** Usuários que editam páginas podem alterar os períodos de inscrição. */
@@ -127,50 +165,51 @@ function fafar_ppgcf_can_manage_schedules() {
 	return current_user_can( 'edit_pages' );
 }
 
-/** Valida e salva os dois períodos enviados pela página de candidatos. */
+/** Valida e salva os quatro períodos sem atualizar parcialmente a configuração. */
 function fafar_ppgcf_save_registration_schedules_from_request() {
 	if ( empty( $_POST['fafar_ppgcf_schedule_action'] ) || 'save' !== sanitize_key( wp_unslash( $_POST['fafar_ppgcf_schedule_action'] ) ) ) {
 		return null;
 	}
-
 	if ( ! fafar_ppgcf_can_manage_schedules() ) {
 		return new WP_Error( 'forbidden', 'Você não tem permissão para alterar os períodos de inscrição.' );
 	}
-
 	$nonce = isset( $_POST['fafar_ppgcf_schedule_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['fafar_ppgcf_schedule_nonce'] ) ) : '';
 	if ( ! wp_verify_nonce( $nonce, 'fafar_ppgcf_save_schedules' ) ) {
 		return new WP_Error( 'invalid_nonce', 'A sessão expirou. Atualize a página e tente novamente.' );
 	}
-
-	$posted = isset( $_POST['fafar_ppgcf_schedule'] ) && is_array( $_POST['fafar_ppgcf_schedule'] ) ? wp_unslash( $_POST['fafar_ppgcf_schedule'] ) : array();
-	$clean  = array();
-
-	foreach ( array( 'production', 'test' ) as $context ) {
-		$context_values = isset( $posted[ $context ] ) && is_array( $posted[ $context ] ) ? $posted[ $context ] : array();
-		$opens_at       = isset( $context_values['opens_at'] ) && is_string( $context_values['opens_at'] ) ? sanitize_text_field( $context_values['opens_at'] ) : '';
-		$closes_at      = isset( $context_values['closes_at'] ) && is_string( $context_values['closes_at'] ) ? sanitize_text_field( $context_values['closes_at'] ) : '';
-
-		if ( ( '' === $opens_at ) !== ( '' === $closes_at ) ) {
-			return new WP_Error( 'incomplete_period', 'Preencha a abertura e o fechamento de cada período, ou deixe os dois campos vazios para desativá-lo.' );
-		}
-
-		if ( '' !== $opens_at ) {
-			$open_date  = fafar_ppgcf_parse_schedule_datetime( $opens_at );
-			$close_date = fafar_ppgcf_parse_schedule_datetime( $closes_at );
-			if ( ! $open_date || ! $close_date ) {
-				return new WP_Error( 'invalid_period', 'Informe datas e horários válidos para os períodos de inscrição.' );
-			}
-			if ( $open_date >= $close_date ) {
-				return new WP_Error( 'invalid_order', 'O fechamento deve ser posterior à abertura em cada período.' );
-			}
-		}
-
-		$clean[ $context ] = array(
-			'opens_at'  => $opens_at,
-			'closes_at' => $closes_at,
-		);
+	if ( ! isset( $_POST['fafar_ppgcf_schedule_format'] ) || 'per_level' !== $_POST['fafar_ppgcf_schedule_format'] ) {
+		return new WP_Error( 'outdated_form', 'A configuração dos períodos mudou. Atualize a página antes de salvar.' );
 	}
 
+	$posted = isset( $_POST['fafar_ppgcf_schedule'] ) && is_array( $_POST['fafar_ppgcf_schedule'] ) ? wp_unslash( $_POST['fafar_ppgcf_schedule'] ) : array();
+	$clean = array();
+	foreach ( array( 'production', 'test' ) as $context ) {
+		$context_values = isset( $posted[ $context ] ) && is_array( $posted[ $context ] ) ? $posted[ $context ] : array();
+		foreach ( fafar_ppgcf_candidate_levels() as $level ) {
+			$values = isset( $context_values[ $level ] ) && is_array( $context_values[ $level ] ) ? $context_values[ $level ] : array();
+			$opens_at = isset( $values['opens_at'] ) && is_string( $values['opens_at'] ) ? sanitize_text_field( $values['opens_at'] ) : '';
+			$closes_at = isset( $values['closes_at'] ) && is_string( $values['closes_at'] ) ? sanitize_text_field( $values['closes_at'] ) : '';
+			$label = $level . ( 'production' === $context ? ' (formulário principal)' : ' (formulário de testes)' );
+			if ( ( '' === $opens_at ) !== ( '' === $closes_at ) ) {
+				return new WP_Error( 'incomplete_period', 'Preencha a abertura e o fechamento de ' . $label . ', ou deixe os dois campos vazios.' );
+			}
+			if ( '' !== $opens_at ) {
+				$open_date = fafar_ppgcf_parse_schedule_datetime( $opens_at );
+				$close_date = fafar_ppgcf_parse_schedule_datetime( $closes_at );
+				if ( ! $open_date || ! $close_date ) {
+					return new WP_Error( 'invalid_period', 'Informe datas e horários válidos para ' . $label . '.' );
+				}
+				if ( $open_date >= $close_date ) {
+					return new WP_Error( 'invalid_order', 'O fechamento deve ser posterior à abertura de ' . $label . '.' );
+				}
+			}
+			$clean[ $context ][ $level ] = array(
+				'enabled' => isset( $values['enabled'] ) && '1' === $values['enabled'],
+				'opens_at' => $opens_at,
+				'closes_at' => $closes_at,
+			);
+		}
+	}
 	update_option( 'fafar_ppgcf_registration_schedules', $clean, false );
 	return true;
 }
@@ -668,26 +707,32 @@ function fafar_ppgcf_verify_nonce() {
 }
 
 /** Impede uploads e inscrições fora do período configurado. */
-function fafar_ppgcf_verify_registration_period( $context ) {
-	$state = fafar_ppgcf_registration_schedule_state( $context );
+function fafar_ppgcf_verify_registration_period( $context, $level ) {
+	$state = fafar_ppgcf_registration_level_state( $context, $level );
 	if ( 'open' === $state['status'] ) {
 		return;
 	}
 
 	$message = 'O formulário de inscrição não está disponível neste momento.';
-	if ( 'upcoming' === $state['status'] || 'scheduled' === $state['status'] ) {
-		$message = 'O período de inscrições ainda não começou.';
+	if ( 'disabled' === $state['status'] ) {
+		$message = 'As inscrições para ' . $level . ' estão desativadas.';
+	} elseif ( 'upcoming' === $state['status'] || 'scheduled' === $state['status'] ) {
+		$message = 'O período de inscrições para ' . $level . ' ainda não começou.';
 	} elseif ( 'closed' === $state['status'] ) {
-		$message = 'O prazo para envio expirou. A inscrição não foi aceita porque o período de inscrições foi encerrado.';
+		$message = 'O prazo para envio de ' . $level . ' expirou. A inscrição não foi aceita porque o período de inscrições foi encerrado.';
 	}
 
-	fafar_ppgcf_send_json_error( $message, 403, '', 'registration_period_closed' );
+	fafar_ppgcf_send_json_error( $message, 403, 'NivelDaVaga', 'registration_period_closed' );
 }
 
 /** Recebe um arquivo individual antes da submissão do formulário. */
 function fafar_ppgcf_upload_file() {
 	$context = fafar_ppgcf_verify_nonce();
-	fafar_ppgcf_verify_registration_period( $context );
+	$level = isset( $_POST['registration_level'] ) && is_string( $_POST['registration_level'] ) ? sanitize_text_field( wp_unslash( $_POST['registration_level'] ) ) : '';
+	if ( ! in_array( $level, fafar_ppgcf_candidate_levels(), true ) ) {
+		fafar_ppgcf_send_json_error( 'Atualize a página e selecione um nível de vaga válido.', 400, 'NivelDaVaga', 'invalid_option' );
+	}
+	fafar_ppgcf_verify_registration_period( $context, $level );
 
 	$field = isset( $_POST['field_name'] ) ? preg_replace( '/[^A-Za-z0-9_]/', '', wp_unslash( $_POST['field_name'] ) ) : '';
 	$rules = fafar_ppgcf_file_rules();
@@ -876,7 +921,6 @@ function fafar_ppgcf_required_files( $data ) {
 /** Salva os dados somente depois que todos os tokens de arquivo forem validados. */
 function fafar_ppgcf_submit_form() {
 	$context = fafar_ppgcf_verify_nonce();
-	fafar_ppgcf_verify_registration_period( $context );
 
 	$data           = fafar_ppgcf_clean_candidate_data( fafar_ppgcf_request_data( 'candidate_data' ) );
 	$uploaded_files = fafar_ppgcf_request_data( 'uploaded_files' );
@@ -888,12 +932,13 @@ function fafar_ppgcf_submit_form() {
 		}
 	}
 
-	$valid_levels = array( 'Doutorado' );
+	$valid_levels = fafar_ppgcf_candidate_levels();
 	$valid_types  = array( 'Ampla concorrência', 'Estrangeiro', 'Reserva de vagas para negros', 'Reserva de vagas para indígenas', 'Reserva de vagas para pessoas com deficiência' );
 	$valid_sexes  = array( 'Feminino', 'Masculino' );
 	if ( ! in_array( $data['NivelDaVaga'], $valid_levels, true ) ) {
-		fafar_ppgcf_send_json_error( 'Nível de vaga inválido.', 400, 'NivelDaVaga', 'invalid_option' );
+		fafar_ppgcf_send_json_error( 'O nível de vaga selecionado não está disponível para inscrição. Atualize a página e selecione um nível habilitado.', 400, 'NivelDaVaga', 'invalid_option' );
 	}
+	fafar_ppgcf_verify_registration_period( $context, $data['NivelDaVaga'] );
 	if ( ! in_array( $data['TipoDaVaga'], $valid_types, true ) ) {
 		fafar_ppgcf_send_json_error( 'Tipo de vaga inválido.', 400, 'TipoDaVaga', 'invalid_option' );
 	}

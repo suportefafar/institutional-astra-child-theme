@@ -526,6 +526,7 @@
       requestData.append('action', 'ppgcf_upload_file');
       requestData.append('nonce', config.nonce);
       requestData.append('schedule_context', config.scheduleContext || 'production');
+      requestData.append('registration_level', checkedValue('NivelDaVaga'));
       requestData.append('field_name', fieldName);
       requestData.append('file', file);
 
