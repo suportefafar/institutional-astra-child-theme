@@ -306,7 +306,6 @@ function fafar_ppgact_file_rules() {
 		'ArquivoPublicacoesAtividades',
 		'ArquivoCertidaoQuitacaoEleitoral',
 		'ArquivoComprovanteResidencia',
-		'ArquivoTabelaPontuacaoCurriculo',
 		'ArquivoComprovanteMilitar',
 		'ArquivoIdentidade',
 		'ArquivoCPF',
@@ -889,7 +888,6 @@ function fafar_ppgact_required_files( $data ) {
 		'ArquivoPublicacoesAtividades',
 		'ArquivoCertidaoQuitacaoEleitoral',
 		'ArquivoComprovanteResidencia',
-		'ArquivoTabelaPontuacaoCurriculo',
 		'ArquivoDiplomaGraduacao',
 	);
 
