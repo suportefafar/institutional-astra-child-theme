@@ -1,0 +1,142 @@
+[
+  {
+    "programa": "ppgcf",
+    "arquivo": "modelo-carimbo.gif",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/08/modelo_carimbo.jpg",
+    "bytes": 49951,
+    "sha256": "d38331986110a26ff90c5cdb80dd11306ef735d10fdafb52d6792830843d7427"
+  },
+  {
+    "programa": "ppgcf",
+    "arquivo": "autodeclaracao-etnico-racial.pdf",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/PG_Autodeclaracao-negros_modeloDRCA1-1.pdf",
+    "bytes": 31459,
+    "sha256": "345d4172d0ad71d1a2597e5ca3e828573be619965d04658e387c283f316ffaf5"
+  },
+  {
+    "programa": "ppgcf",
+    "arquivo": "autorreconhecimento-indigena.pdf",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/PG_Declaracao-de-Autoreconhecimento_Indigena.pdf",
+    "bytes": 38914,
+    "sha256": "b3d75f6aeb0819149bfc9ff54458a19d16603d486a68d114842afab4452e3277"
+  },
+  {
+    "programa": "ppgcf",
+    "arquivo": "liderancas-indigenas.pdf",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/PG_Declaracao-de-Liderancas-Indigenas.pdf",
+    "bytes": 41180,
+    "sha256": "70684b086fbd4ff6fa28750aa31b96f95a81e67a429763885f27a0e9ef753633"
+  },
+  {
+    "programa": "ppgcf",
+    "arquivo": "declaracao-residencia-indigena.pdf",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/PG_Declaracao-de-Residencia_Indigena.pdf",
+    "bytes": 41956,
+    "sha256": "c0e2b7d70ee35fdeaae4d635ff8d821596c5bdfe722cc7709f1e5466905be0fd"
+  },
+  {
+    "programa": "ppgcf",
+    "arquivo": "autodeclaracao-pessoa-com-deficiencia.pdf",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/Autodeclaracao-Pessoa-com-Deficiencia.pdf",
+    "bytes": 38410,
+    "sha256": "f6c3fda77bb156e30f25bd6850f450a6d8f3cff049691c63cca746d7fb237c4c"
+  },
+  {
+    "programa": "ppgcf",
+    "arquivo": "relatorio-medico-assistente.docx",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/MODELO_RELATORIO_MEDICO_ASSISTENTE.docx",
+    "bytes": 15494,
+    "sha256": "f3b7d06a6d0b87797e84c370bc8e4fa5993f0f06151d985eb5de95c8dcd71f01"
+  },
+  {
+    "programa": "ppgcf",
+    "arquivo": "solicitacao-condicoes-especiais.docx",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/FORMULARIO_SOLICITACAO_CONDICOES_ESPECIAIS_REALIZACAO-PROVA.docx",
+    "bytes": 23288,
+    "sha256": "f288e975637ea5c5b2d4264ffc92c85f9feaab6f210cb456e763e4854dc8ee78"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "autorreconhecimento-quilombola.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 57459,
+    "sha256": "dba40bc500353cb8788ed75268226eb492bf0b64b9b81609b93d9936311adf34"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "autorreconhecimento-indigena.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 57601,
+    "sha256": "560fcd0938ac899cc373cff41c9f8d37b4ed1f22621f7f40533e393b0f576420"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "liderancas-quilombolas.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 57486,
+    "sha256": "3138a38f83d5249a23afe994b4d41124cee454ae32b59c1f891462f003afe0d0"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "autodeclaracao-trans-travesti.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 59855,
+    "sha256": "6318e4d8c22c841070e558fb5aa72d8d13945d2751365031266011644029e41b"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "autodeclaracao-etnico-racial.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 61654,
+    "sha256": "8684ae77523ba4c1a58217b0ec8c1a40ba21bc970f0e1b67afdfa4e1533655af"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "solicitacao-condicoes-especiais.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 67697,
+    "sha256": "ea3a051bafe29ec50bcced3f6b525f2ebab7d7dba437faea9453cc96779ad286"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "formulario-inscricao-selecao.pdf",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 347700,
+    "sha256": "d9be8c9cd6dc9d5c6606e5fdd62dab744a7194c1f499ae5849d2846620bf19c9"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "liderancas-indigenas.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 57520,
+    "sha256": "e6bf27fd97ba9fba1d5218d23d4d4307d735894603f967e421d311ebb40e3b17"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "autodeclaracao-pessoa-com-deficiencia.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 56285,
+    "sha256": "a8f2de35a4c950cd2e61d3b715ec8c11700c909983727584178fb1304ff3c52a"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "relatorio-profissional-saude.docx",
+    "origem": "modelos fornecidos pelo usuário",
+    "bytes": 56733,
+    "sha256": "c89720e253e264845fbb29aae8048ae0c332a0c89c3ddda7fbcb0957af5505de"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "modelo-carimbo.gif",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/08/modelo_carimbo.jpg",
+    "bytes": 49951,
+    "sha256": "d38331986110a26ff90c5cdb80dd11306ef735d10fdafb52d6792830843d7427"
+  },
+  {
+    "programa": "ppgact",
+    "arquivo": "declaracao-residencia-indigena.pdf",
+    "origem": "https://www.farmacia.ufmg.br/wp-content/uploads/2022/11/PG_Declaracao-de-Residencia_Indigena.pdf",
+    "bytes": 41956,
+    "sha256": "c0e2b7d70ee35fdeaae4d635ff8d821596c5bdfe722cc7709f1e5466905be0fd"
+  }
+]
